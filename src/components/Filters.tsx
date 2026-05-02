@@ -1,7 +1,6 @@
-type FiltersType = {
-  class?: string;
-  time?: string;
-};
+import React from 'react';
+// إضافة كلمة type هنا هي اللي هتحل المشكلة
+import type { FiltersType } from './BookTickets'; 
 
 type Props = {
   filters: FiltersType;
@@ -10,8 +9,7 @@ type Props = {
 
 const Filters = ({ filters, setFilters }: Props) => {
   return (
-    <div className="bg-red-900 p-5 rounded-xl text-white w-[250px]  ">
-
+    <div className="bg-red-900 p-5 rounded-xl text-white w-[250px] mb-10">
       <h2 className="text-xl mb-4">Filters</h2>
 
       <div>
@@ -20,6 +18,7 @@ const Filters = ({ filters, setFilters }: Props) => {
           <label key={type} className="block">
             <input
               type="checkbox"
+              checked={filters.class === type}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setFilters({
                   ...filters,
@@ -31,7 +30,6 @@ const Filters = ({ filters, setFilters }: Props) => {
           </label>
         ))}
       </div>
-
     </div>
   );
 };

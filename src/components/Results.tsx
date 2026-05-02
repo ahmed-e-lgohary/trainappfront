@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
 type Train = {
-  id: number;
+  id: string; 
   name: string;
   class: string;
   from: string;
@@ -19,9 +19,10 @@ interface ResultsProps {
 const Results: React.FC<ResultsProps> = ({ data }) => {
   const navigate = useNavigate();
 
-  const handleViewSeats = (id: number) => {
-    // تأكد أن المسار /seats/:id معرف في App.tsx
-    navigate(`/seats/${id}`);
+  const handleViewSeats = (train: Train) => {
+    // --- التعديل: حفظ اسم القطر المختار ---
+    localStorage.setItem("selectedTrainName", train.name);
+    navigate(`/seats/${train.id}`);
   };
 
   if (data.length === 0) {
@@ -57,7 +58,7 @@ const Results: React.FC<ResultsProps> = ({ data }) => {
           </div>
 
           <button 
-            onClick={() => handleViewSeats(train.id)}
+            onClick={() => handleViewSeats(train)}
             className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-xl font-bold transition-transform active:scale-95"
           >
             View Seats

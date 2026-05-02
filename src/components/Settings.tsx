@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const Settings = () => {
-  const [enabled, setEnabled] = useState(() => {
+const Settings: React.FC = () => {
+  const navigate = useNavigate();
+
+  const [enabled, setEnabled] = useState<boolean>(() => {
     const saved = localStorage.getItem("darkMode");
-    return saved === "true"; 
+    return saved === "true";
   });
 
-  const [isArabic, setIsArabic] = useState(() => {
+  const [isArabic, setIsArabic] = useState<boolean>(() => {
     const savedLang = localStorage.getItem("language");
     return savedLang === "ar";
   });
 
-  // قاموس الكلمات (عشان يترجم فعلياً)
   const translations = {
     en: {
       title: "Settings",
@@ -19,7 +21,9 @@ const Settings = () => {
       language: "Language",
       statusOn: "On",
       statusOff: "Off",
-      langName: "English"
+      langName: "English",
+      logout: "Logout",
+      logoutConfirm: "Are you sure you want to exit?"
     },
     ar: {
       title: "الإعدادات",
@@ -27,7 +31,9 @@ const Settings = () => {
       language: "اللغة",
       statusOn: "تشغيل",
       statusOff: "إيقاف",
-      langName: "العربية"
+      langName: "العربية",
+      logout: "تسجيل الخروج",
+      logoutConfirm: "هل أنت متأكد من تسجيل الخروج؟"
     }
   };
 
@@ -53,10 +59,17 @@ const Settings = () => {
     }
   }, [isArabic]);
 
+  // دالة تسجيل الخروج
+  const handleLogout = (): void => {
+    localStorage.removeItem("token"); // مسح التوكن لحل مشكلة الـ 403
+    navigate("/login"); // التوجيه لصفحة اللوجين
+  };
+
   return (
     <div className="w-[75%] m-auto mt-16 transition duration-300 h-[100vh]">
       <h1 className="text-[35px] font-bold dark:text-white mb-5">{t.title}</h1>
       
+      {/* Dark Mode Row */}
       <div className="flex items-center justify-between pt-10">
         <h2 className="text-[30px] font-bold !text-[#5f5f5f] dark:text-white">
           {t.darkMode}
@@ -76,6 +89,7 @@ const Settings = () => {
       
       <div className="w-full h-[1px] bg-[#ccc] mt-4 dark:bg-gray-600"></div>
 
+      {/* Language Row */}
       <div className="flex items-center justify-between pt-5">
         <h2 className="text-[30px] font-bold !text-[#5f5f5f] dark:text-white mt-5">
           {t.language}
@@ -94,6 +108,21 @@ const Settings = () => {
       </div>
 
       <div className="w-full h-[1.5px] bg-[#ccc] mt-4 dark:bg-gray-600"></div>
+
+      {/* Logout Row */}
+      <div className="flex items-center justify-between pt-10">
+        <h2 className="text-[30px] font-bold text-red-600">
+          {t.logout}
+        </h2>
+        <button
+          onClick={handleLogout}
+          className="bg-red-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-red-700 transition duration-300 shadow-md"
+        >
+          {t.logout}
+        </button>
+      </div>
+
+      <div className="w-full h-[1px] bg-[#ccc] mt-4 dark:bg-gray-600"></div>
     </div>
   );
 };

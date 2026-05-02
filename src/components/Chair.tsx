@@ -2,18 +2,36 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Seat from "./Seats"; 
 
-
 export default function Chair(): React.ReactElement {
   const navigate = useNavigate();
   const totalSeats = 88;
   const [selected, setSelected] = useState<number[]>([]);
   const booked = [10, 11, 25, 26, 40, 41]; 
+  
+  // سعر الكرسي الواحد
+  const pricePerSeat = 150;
 
   const toggleSeat = (num: number): void => {
     if (booked.includes(num)) return;
     setSelected(prev => 
       prev.includes(num) ? prev.filter(s => s !== num) : [...prev, num]
     );
+  };
+
+  // --- الدالة المسؤولة عن حفظ البيانات والربط مع التذكرة ---
+  const handleConfirm = () => {
+    if (selected.length === 0) return;
+
+    // تحويل مصفوفة الأرقام لنص مرتب (مثال: Seat 1, Seat 2)
+    const seatsString = selected.sort((a, b) => a - b).map(s => `Seat ${s}`).join(", ");
+    const totalPrice = selected.length * pricePerSeat;
+
+    // حفظ البيانات في localStorage لتستلمها صفحة التذكرة
+    localStorage.setItem("selectedSeat", `COACH 01 - ${seatsString}`);
+    localStorage.setItem("selectedPrice", totalPrice.toString());
+
+    // الانتقال لصفحة بيانات الركاب
+    navigate("/passenger");
   };
 
   const renderRows = () => {
@@ -71,14 +89,16 @@ export default function Chair(): React.ReactElement {
           <div className="w-10"></div>
         </div>
       </header>
-        <div className="w-[50%] m-auto py-10 bg-white mt-2 flex justify-center items-center">
-            <div className="w-5 h-5 rounded-[5px] bg-white border-gray-700 border-[1px]"></div>
-            <h2 className="text-[22px] text-[#383838] mr-10 ml-1">Available</h2>
-            <div className="w-5 h-5 rounded-[5px] bg-red-600 border-gray-700 border-[1px]"></div>
-            <h2 className="text-[22px] text-[#383838] mr-10 ml-1">Selected</h2>
-            <div className="w-5 h-5 rounded-[5px] bg-black border-gray-700 border-[1px]"></div>
-            <h2 className="text-[22px] text-[#383838]  ml-1">Booked</h2>
-        </div>
+
+      <div className="w-[50%] m-auto py-10 bg-white mt-2 flex justify-center items-center">
+          <div className="w-5 h-5 rounded-[5px] bg-white border-gray-700 border-[1px]"></div>
+          <h2 className="text-[22px] text-[#383838] mr-10 ml-1">Available</h2>
+          <div className="w-5 h-5 rounded-[5px] bg-red-600 border-gray-700 border-[1px]"></div>
+          <h2 className="text-[22px] text-[#383838] mr-10 ml-1">Selected</h2>
+          <div className="w-5 h-5 rounded-[5px] bg-black border-gray-700 border-[1px]"></div>
+          <h2 className="text-[22px] text-[#383838]  ml-1">Booked</h2>
+      </div>
+
       {/* منطقة الكراسي */}
       <div className="flex-grow overflow-y-auto p-4 bg-gray-50/50 mt-4 shadow-inner">
         <div className="flex flex-col items-center">
@@ -90,11 +110,11 @@ export default function Chair(): React.ReactElement {
       <div className="p-6 bg-white border-t border-gray-100 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
         <div className="flex justify-between items-center mb-4">
           <div className="text-sm font-bold text-gray-300">Selected: <span className="text-[#b32121]">{selected.length}</span></div>
-          <div className="text-xl font-black">{selected.length * 150} EGP</div>
+          <div className="text-xl font-black">{selected.length * pricePerSeat} EGP</div>
         </div>
         <button 
           disabled={selected.length === 0}
-          onClick={() => navigate("/passenger")}
+          onClick={handleConfirm} // تم الربط بالدالة الجديدة
           className="w-full py-4 bg-[#b32121] disabled:bg-gray-300 text-white font-black rounded-2xl shadow-xl transition-all active:scale-95 uppercase"
         >
           Confirm Booking

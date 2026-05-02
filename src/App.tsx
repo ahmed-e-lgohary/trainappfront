@@ -1,13 +1,12 @@
-import { useState } from "react";
-import { Route, Routes } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Route, Routes, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-
-// استيراد المكونات
+// import axios from "axios";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./components/Home";
 import Book from "./components/BookTickets";
-import MyBookings from "./components/MyBookings"; // استيراد واحد فقط باسم واضح
+import MyBookings from "./components/MyBookings";
 import Settings from "./components/Settings";
 import Login from "./components/Login";
 import SignUp from "./components/SignUp";
@@ -15,47 +14,59 @@ import Chair from "./components/Chair";
 import Payment from "./components/Payment";
 import PassengerPage from "./components/PassengerInfo";
 import Success from "./components/Success";
+
 function App() {
   const { i18n } = useTranslation();
-  
-  // 1. إدارة حالة الثيم (Light / Dark)
-  const [theme, setTheme] = useState("light");
+  const navigate = useNavigate();
+  const [theme, setTheme] = useState<string>("light");
+  const [loading, setLoading] = useState<boolean>(true);
+
+  // التحقق من الثيم عند التحميل
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") || "light";
+    setTheme(savedTheme);
+    document.body.className = savedTheme;
+    setLoading(false);
+  }, []);
 
   const toggleTheme = () => {
-    setTheme((prev) => (prev === "light" ? "dark" : "light"));
-    // إضافة كلاس dark للـ body عشان الـ Tailwind dark: يشتغل
-    if (theme === "light") {
-      document.body.classList.add("dark");
-    } else {
-      document.body.classList.remove("dark");
-    }
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+    document.body.className = newTheme;
   };
 
-  // 2. إدارة حالة اللغة
   const toggleLang = () => {
     const newLang = i18n.language === "en" ? "ar" : "en";
     i18n.changeLanguage(newLang);
   };
 
-  return (
-    // إضافة كلاس الثيم لضمان عمل Tailwind
-    <div className={theme === "dark" ? "dark" : ""}>
-      <Navbar />
+  if (loading) return null;
 
+  return (
+    <div className={theme === "dark" ? "dark" : ""}>
+      <Navbar /> 
       <Routes>
+        <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
         <Route path="/book" element={<Book />} />
         
-        {/* صفحة حجوزاتي */}
-        <Route path="/my" element={<MyBookings bookings={[]} />} />
+        {/* مسار الكراسي - تأكد إنك بتبعت الـ id من صفحة الحجز */}
+        <Route path="/seats/:id" element={<Chair />} /> 
         
+        <Route path="/passenger" element={<PassengerPage />} />
+        <Route path="/success" element={<Success />} />
+        
+        {/* صفحة حجوزاتي - خليناها مفتوحة ومستقلة */}
+        <Route 
+          path="/my" 
+          element={<MyBookings theme={theme} onBack={() => navigate(-1)} />} 
+        />
+
         <Route path="/settings" element={<Settings />} />
         <Route path="/login" element={<Login />} />
         <Route path="/sign" element={<SignUp />} />
-        <Route path="/seats" element={<Chair />} />
-        <Route path="/book" element={<Book />} />
-        <Route path="/seats/:id" element={<Chair />} /> {/* تأكد من وجود :id */}
-        <Route path="/passenger" element={<PassengerPage />} />
+        
         <Route 
           path="/payment" 
           element={
@@ -66,23 +77,7 @@ function App() {
             />
           } 
         />
-
-        {/* صفحة التذكرة (تستخدم نفس مكون MyBookings) */}
-        <Route 
-          path="/ticket" 
-          element={
-            <MyBookings 
-              onBack={() => window.history.back()} 
-              onShare={() => console.log("Shared!")} 
-              onDownload={() => window.print()} 
-            />
-          } 
-        />
-
-        <Route path="/" element={<Home />} />
-        <Route path="/Success" element={<Success />} />
       </Routes>
-
       <Footer />
     </div>
   );

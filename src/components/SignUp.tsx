@@ -1,11 +1,12 @@
 import React, { useState, useRef } from 'react';
 import bgImage from '../assets/packground.jpg'; 
-import { useNavigate } from 'react-router-dom'; // 1. استيراد useNavigate
+import { useNavigate } from 'react-router-dom';
 
 const SignUp: React.FC = () => {
   const [showPass, setShowPass] = useState<boolean>(false);
   const [showConfirmPass, setShowConfirmPass] = useState<boolean>(false);
-  const navigate = useNavigate(); // 2. تعريف navigate
+  const [loading, setLoading] = useState<boolean>(false); 
+  const navigate = useNavigate();
 
   const nameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
@@ -25,16 +26,64 @@ const SignUp: React.FC = () => {
     }
   };
 
-  // 3. الدالة اللي بتشتغل عند الضغط على REGISTER
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // حفظ "الأمارة" في المتصفح إن الشخص ده بقا عنده حساب ومسجل دخول
-    localStorage.setItem("userAccount", "true");
-    localStorage.setItem("userToken", "true");
 
-    // نقله لصفحة الباسنجر عشان يكمل حجز
-    navigate("/passenger");
+    const password = passRef.current?.value || "";
+    const confirmPassword = confirmPassRef.current?.value || "";
+
+    if (password !== confirmPassword) {
+      alert("كلمات السر غير متطابقة!");
+      return;
+    }
+
+    setLoading(true);
+
+    const userData = {
+      name: nameRef.current?.value,
+      email: emailRef.current?.value,
+      password: password,
+      passwordConfirm: confirmPassword,
+      phone: phoneRef.current?.value,
+    };
+
+    try {
+      const response = await fetch('https://trainbookingapp.fly.dev/api/v1/email/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(userData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("userAccount", "true");
+        alert("تم إنشاء الحساب بنجاح!");
+        navigate("/passenger");
+      } else {
+        // حل مشكلة الـ any هنا عن طريق تحديد نوع الخطأ بوضوح
+        let errorMessage = data.message || "تأكد من البيانات";
+        
+        if (data.errors) {
+            // تحويل الـ errors لمصفوفة واستخراج الرسائل بدون any
+            errorMessage = Object.values(data.errors)
+                .map((err) => (err as { message: string }).message)
+                .join("\n");
+        }
+        
+        alert(`فشل التسجيل:\n${errorMessage}`);
+        console.error("Server Response:", data);
+      }
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "حدث خطأ في الاتصال";
+      alert(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -52,12 +101,12 @@ const SignUp: React.FC = () => {
 
           <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Create Account</h2>
 
-          {/* 4. ربط الفورم بدالة handleRegister */}
           <form className="flex flex-col gap-4" onSubmit={handleRegister}>
             <input
               ref={nameRef}
               type="text"
               placeholder="Full Name"
+              required
               className="w-full px-4 py-3 rounded-xl border-2 border-[#b32121]/30 focus:border-[#b32121] outline-none text-black bg-white transition-all"
               onKeyDown={(e) => handleKeyPress(e, emailRef)}
             />
@@ -66,6 +115,7 @@ const SignUp: React.FC = () => {
               ref={emailRef}
               type="email"
               placeholder="Email Address"
+              required
               className="w-full px-4 py-3 rounded-xl border-2 border-[#b32121]/30 focus:border-[#b32121] outline-none text-black bg-white transition-all"
               onKeyDown={(e) => handleKeyPress(e, phoneRef)}
             />
@@ -74,6 +124,7 @@ const SignUp: React.FC = () => {
               ref={phoneRef}
               type="tel"
               placeholder="Phone Number"
+              required
               className="w-full px-4 py-3 rounded-xl border-2 border-[#b32121]/30 focus:border-[#b32121] outline-none text-black bg-white transition-all"
               onKeyDown={(e) => handleKeyPress(e, passRef)}
             />
@@ -82,7 +133,8 @@ const SignUp: React.FC = () => {
               <input
                 ref={passRef}
                 type={showPass ? "text" : "password"}
-                placeholder="Password"
+                placeholder="Password (min 8 chars)"
+                required
                 className="w-full px-4 py-3 rounded-xl border-2 border-[#b32121]/30 focus:border-[#b32121] outline-none text-black bg-white transition-all"
                 onKeyDown={(e) => handleKeyPress(e, confirmPassRef)}
               />
@@ -96,6 +148,7 @@ const SignUp: React.FC = () => {
                 ref={confirmPassRef}
                 type={showConfirmPass ? "text" : "password"}
                 placeholder="Confirm Password"
+                required
                 className="w-full px-4 py-3 rounded-xl border-2 border-[#b32121]/30 focus:border-[#b32121] outline-none text-black bg-white transition-all"
                 onKeyDown={(e) => handleKeyPress(e, null)}
               />
@@ -104,8 +157,12 @@ const SignUp: React.FC = () => {
               </button>
             </div>
 
-            <button type="submit" className="w-full py-4 bg-[#b32121] text-white font-bold rounded-xl mt-2 hover:bg-red-700 transition-colors shadow-lg">
-              REGISTER
+            <button 
+              type="submit" 
+              disabled={loading}
+              className={`w-full py-4 bg-[#b32121] text-white font-bold rounded-xl mt-2 hover:bg-red-700 transition-colors shadow-lg ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {loading ? "REGISTERING..." : "REGISTER"}
             </button>
             
             <p className="text-center text-sm text-gray-600 mt-4">

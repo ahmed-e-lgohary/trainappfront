@@ -6,27 +6,34 @@ const Success = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // التأكد من حالة الدفع من الرابط
     const queryParams = new URLSearchParams(location.search);
     const isSuccess = queryParams.get('success') === 'true';
 
     if (isSuccess) {
-      // 1. توليد بيانات التذكرة (Mock Data للمناقشة)
+      const from = localStorage.getItem("departureCity") || "غير محدد";
+      const to = localStorage.getItem("destinationCity") || "غير محدد";
+      const train = localStorage.getItem("selectedTrainName") || "قطار ENR";
+      const date = localStorage.getItem("travelDate") || "غير محدد";
+      const seat = localStorage.getItem("selectedSeat") || "A1";
+      const price = localStorage.getItem("selectedPrice") || "150";
+
+      
+      const name = localStorage.getItem("passengerName") || "Guest User";
       const ticketData = {
-        ticketId: "SK-" + Math.floor(Math.random() * 90000 + 10000),
-        trainName: "قطار توربيني - إكسبريس",
-        userName: "Guest User",
-        date: new Date().toLocaleDateString('ar-EG'),
-        seat: "A" + Math.floor(Math.random() * 50 + 1),
-        price: "150 EGP",
-        from: "القاهرة",
-        to: "الإسكندرية"
+        ticketId: "ENR-" + Math.floor(Math.random() * 90000 + 10000),
+        trainName: train,
+        userName: name,
+        date: date,
+        seat: seat,
+        price: `${price} EGP`,
+        from: from,
+        to: to
       };
       
-      // 2. حفظ التذكرة في المتصفح عشان صفحة MyBookings تقرأها
+      // حفظ البيانات النهائية لصفحة MyBookings
       localStorage.setItem("lastTicket", JSON.stringify(ticketData));
 
-      // 3. التحويل التلقائي لصفحة التذاكر بعد 3 ثواني
+      // التحويل التلقائي لصفحة التذاكر بعد 3 ثواني
       setTimeout(() => {
         navigate('/My');
       }, 3000);
@@ -43,8 +50,8 @@ const Success = () => {
           <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg animate-bounce">
             <i className="fa-solid fa-check text-white text-5xl"></i>
           </div>
-          <h1 className="text-4xl font-bold text-black dark:text-white mb-2">نجحت عملية الدفع!</h1>
-          <p className="text-gray-500 text-lg">جاري إعداد تذكرتك وتحويلك لحسابك...</p>
+          <h1 className="text-4xl font-bold text-black dark:text-white mb-2">Payment Successful !</h1>
+          <p className="text-gray-500 text-lg">Preparing your ticket and redirecting you to your account...</p>
         </div>
       ) : (
         <div className="text-center">
@@ -52,12 +59,12 @@ const Success = () => {
             <i className="fa-solid fa-xmark text-white text-5xl"></i>
           </div>
           <h1 className="text-4xl font-bold text-black dark:text-white mb-2">فشلت عملية الدفع</h1>
-          <p className="text-gray-500 text-lg">لم يتم سحب أي مبالغ من حسابك.</p>
+          <p className="text-gray-500 text-lg">No money has been withdrawn from your account.</p>
           <button 
             onClick={() => navigate('/payment')}
             className="mt-8 px-10 py-3 bg-[#b30606] text-white rounded-2xl font-bold text-xl hover:scale-105 transition-all shadow-xl"
           >
-            جرب مرة أخرى
+           Please try again
           </button>
         </div>
       )}
