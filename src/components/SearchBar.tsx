@@ -1,48 +1,69 @@
 import { useState } from "react";
 import { FaArrowRight } from "react-icons/fa";
-
 export type SearchData = {
   from: string;
   to: string;
   date: string;
   classType: string;
 };
-
 type Props = {
   onSearch: (data: SearchData) => void;
 };
-
-const serverStations: string[] = [
-  "Cairo ", "Giza", "Bashtil", "Assiut", "Sohag", "Alexandria",
-  "Luxor", "Aswan", "Benha", "Qena", "Nag Hammadi", 
-  "Mallawi", "Minya", "Tahta", "Girga", "Edfu"
+const serverStations = [
+  { name: "Sohag", id: "69e9bc1f9781f85ddaf3d26d" },
+  { name: "Akhmim", id: "69e9bc1f9781f85ddaf3d26e" },
+  { name: "Kom Ombo", id: "69e9bb519781f85ddaf3d240" },
+  { name: "Deir Mawas", id: "69e9bb519781f85ddaf3d230" },
+  { name: "Mallawi", id: "69e9bb519781f85ddaf3d22f" },
+  { name: "Tahta", id: "69e9bb519781f85ddaf3d235" },
+  { name: "Aswan", id: "69e9bb519781f85ddaf3d241" },
+  { name: "Assiut", id: "69e9bb519781f85ddaf3d231" },
+  { name: "Abnoub", id: "69e9bb519781f85ddaf3d232" },
+  { name: "Manfalut", id: "69e9bb519781f85ddaf3d233" },
+  { name: "Cairo Ramses", id: "69e9bbf49781f85ddaf3d248" },
+  { name: "Giza", id: "69e9bbf49781f85ddaf3d24a" },
+  { name: "Bashtil", id: "69e9bbf49781f85ddaf3d249" },
+  { name: "Ismailia", id: "69e9bbf49781f85ddaf3d260" },
+  { name: "Port Said", id: "69e9bbf49781f85ddaf3d261" },
+  { name: "Luxor", id: "69e9bc1f9781f85ddaf3d274" },
+  { name: "Edfu", id: "69e9bc1f9781f85ddaf3d276" }
 ];
-
 const SearchBar = ({ onSearch }: Props) => {
-  const [from, setFrom] = useState<string>("");
-  const [to, setTo] = useState<string>("");
+  const [fromName, setFromName] = useState<string>("");
+  const [toName, setToName] = useState<string>("");
   const [date, setDate] = useState<string>("");
 
   const handleSearch = () => {
-    if (!from || !to || !date) {
+    if (!fromName || !toName || !date) {
       alert("Please fill in all fields");
       return;
     }
+    const fromStation = serverStations.find(s => s.name === fromName.trim());
+    const toStation = serverStations.find(s => s.name === toName.trim());
 
-    // --- التعديل: حفظ بيانات البحث للوصول إليها في التذكرة ---
-    localStorage.setItem("departureCity", from);
-    localStorage.setItem("destinationCity", to);
+    if (!fromStation || !toStation) {
+      alert("Please select a valid station from the list");
+      return;
+    }
+
+    localStorage.setItem("departureCity", fromName);
+    localStorage.setItem("destinationCity", toName);
     localStorage.setItem("travelDate", date);
 
-    onSearch({ from, to, date, classType: "First Class" });
+    onSearch({ 
+      from: fromStation.id, 
+      to: toStation.id, 
+      date, 
+      classType: "First Class" 
+    });
   };
 
   return (
     <div className="bg-red-900 p-5 rounded-2xl flex flex-col md:flex-row gap-4 items-center justify-center shadow-xl">
       <input
         list="stations"
-        value={from}
-        onChange={(e) => setFrom(e.target.value)}
+        value={fromName}
+        onChange={(e) => setFromName(e.target.value)}
         placeholder="From"
         className="p-3 rounded-lg bg-white outline-none w-full md:w-auto text-gray-800"
       />
@@ -51,8 +72,8 @@ const SearchBar = ({ onSearch }: Props) => {
       </div>
       <input
         list="stations"
-        value={to}
-        onChange={(e) => setTo(e.target.value)}
+        value={toName}
+        onChange={(e) => setToName(e.target.value)}
         placeholder="To"
         className="p-3 rounded-lg bg-white outline-none w-full md:w-auto text-gray-800"
       />
@@ -70,11 +91,10 @@ const SearchBar = ({ onSearch }: Props) => {
       </button>
       <datalist id="stations">
         {serverStations.map((station, i) => (
-          <option key={i} value={station} />
+          <option key={i} value={station.name} />
         ))}
       </datalist>
     </div>
   );
 };
-
 export default SearchBar;

@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import bgImage from './../assets/packground.jpg'; 
 import enrLogo from '../assets/logo.png'; 
 
+// تعريف نوع الرد المتوقع من السيرفر
 interface LoginResponse {
   success: boolean;
   msg: string;
@@ -23,38 +24,17 @@ const Login: React.FC = () => {
   const [showPass, setShowPass] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const navigate = useNavigate();
 
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
-
-  // دالة حقن البيانات في كل مكان ممكن الأبلكيشن يدور فيه
-  const forceAuthBypass = (email: string) => {
-    const fakeToken = 'fake-token-' + Date.now();
-    const fakeUser = {
-      id: "66123456789",
-      name: "Girges Moner",
-      email: email || "test@example.com",
-      role: "user"
-    };
-
-    // زرع البيانات لضمان تخطي أي ProtectedRoute
-    localStorage.setItem('token', fakeToken);
-    localStorage.setItem('accessToken', fakeToken);
-    localStorage.setItem('user', JSON.stringify(fakeUser));
-    localStorage.setItem('userData', JSON.stringify(fakeUser));
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('userAccount', 'true');
-    localStorage.setItem('auth', 'true');
-  };
 
   const handleLogin = async () => {
     const email = emailRef.current?.value.trim();
     const password = passwordRef.current?.value.trim();
 
     if (!email || !password) {
-      setError("برجاء إدخال البريد الإلكتروني وكلمة المرور");
+      setError("Please enter your email and password");
       return;
     }
 
@@ -62,27 +42,31 @@ const Login: React.FC = () => {
     setError("");
 
     try {
-      const proxyUrl = 'https://corsproxy.io/?';
-      const targetUrl = 'https://trainbookingapp.fly.dev/api/v1/email/login';
-
-      const response = await axios.post<LoginResponse>(proxyUrl + encodeURIComponent(targetUrl), {
+      // الرابط المباشر للسيرفر (EMAIL Login)
+      const response = await axios.post<LoginResponse>('https://trainbookingapp.fly.dev/api/v1/email/login', {
         email: email,
         password: password
       });
 
       if (response.data && response.data.success) {
-        forceAuthBypass(email!); 
+        // تخزين التوكن والبيانات الحقيقية
         localStorage.setItem('token', response.data.data.token);
-        
-        // الحل الجذري: Refresh كامل للمتصفح أثناء التوجه لصفحة الحجز
-        window.location.href = '/book'; 
+        localStorage.setItem('user', JSON.stringify(response.data.data.user));
+        localStorage.setItem('isLoggedIn', 'true');
+
+        // التوجه لصفحة البحث (Search) أو الحجز
+        navigate('/book'); 
       }
-    } catch {
-      // في حالة فشل السيرفر (Bypass Mode)
-      forceAuthBypass(email!);
+    } catch (err: unknown) {
+      let message = "Invalid email or password";
       
-      // التوجه لصفحة الحجز مع Refresh إجباري
-      window.location.href = '/book'; 
+      if (axios.isAxiosError(err)) {
+        // استخراج رسالة الخطأ من السيرفر إذا وجدت
+        const serverData = err.response?.data as { msg?: string } | undefined;
+        message = serverData?.msg || "Connection error with server";
+      }
+      
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -125,7 +109,7 @@ const Login: React.FC = () => {
               <input 
                 ref={emailRef} 
                 type="email" 
-                placeholder="Email" 
+                placeholder="Email Address" 
                 className="clean-input" 
                 autoComplete="off"
                 onKeyDown={(e) => handleKeyDown(e, passwordRef)} 
@@ -148,7 +132,8 @@ const Login: React.FC = () => {
               />
               <div className="eye-icon" style={{ cursor: 'pointer' }} onClick={() => setShowPass(!showPass)}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="2">
-                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 
+                  0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
                   <line x1="1" y1="1" x2="23" y2="23"/>
                 </svg>
               </div>
@@ -163,10 +148,19 @@ const Login: React.FC = () => {
             <div className="divider"><div className="line"></div><span>Or sign in via</span><div className="line"></div></div>
             
             <div className="social-group">
-              <div className="social-circle"><img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="google" /></div>
-              <div className="social-circle fb"><img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" alt="facebook" /></div>
-              <div className="social-circle"><img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="apple" /></div>
+              <div className="social-circle"><img
+               src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="google" /></div>
+              <div className="social-circle fb"><img 
+              src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" alt="facebook" /></div>
+              <div className="social-circle"><img 
+              src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="apple" /></div>
             </div>
+            
+            <p className="text-center text-sm text-gray-600 mt-4">
+              Don't have an account? <span 
+              onClick={() => navigate("/signup")}
+              className="text-[#b32121] font-bold cursor-pointer hover:underline">Register</span>
+            </p>
           </div>
         </div>
       </div>

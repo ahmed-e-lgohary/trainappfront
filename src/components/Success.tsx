@@ -17,7 +17,7 @@ const Success = () => {
       const seat = localStorage.getItem("selectedSeat") || "A1";
       const price = localStorage.getItem("selectedPrice") || "150";
 
-      
+
       const name = localStorage.getItem("passengerName") || "Guest User";
       const ticketData = {
         ticketId: "ENR-" + Math.floor(Math.random() * 90000 + 10000),
@@ -35,7 +35,7 @@ const Success = () => {
 
       // التحويل التلقائي لصفحة التذاكر بعد 3 ثواني
       setTimeout(() => {
-        navigate('/My');
+        navigate('/passenger');
       }, 3000);
     }
   }, [location, navigate]);

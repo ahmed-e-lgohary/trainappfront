@@ -30,7 +30,8 @@ const Seat: React.FC<SeatProps> = ({ number, status, onClick }) => {
 
   return (
     <div
-      className={`relative inline-flex items-center justify-center transition-all duration-200 ${statusColors[status].container}`}
+      className={`relative inline-flex items-center justify-center transition-all duration-200 
+        ${statusColors[status].container}`}
       onClick={status !== "booked" ? onClick : undefined}
     >
       <svg width="55" height="55" viewBox="0 0 80 70" className={`${statusColors[status].svg} transition-colors duration-300`}>
@@ -39,7 +40,8 @@ const Seat: React.FC<SeatProps> = ({ number, status, onClick }) => {
         <rect x="68" y="22" width="8" height="22" rx="3" />
         <path d="M18 52 L14 62 L66 62 L62 52 Z" fillOpacity="0.8" />
       </svg>
-      <span className={`absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 font-bold text-[12px] pointer-events-none ${statusColors[status].text}`}>
+      <span className={`absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 font-bold text-[12px] pointer-events-none 
+        ${statusColors[status].text}`}>
         {number}
       </span>
     </div>

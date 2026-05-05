@@ -14,7 +14,7 @@ import Chair from "./components/Chair";
 import Payment from "./components/Payment";
 import PassengerPage from "./components/PassengerInfo";
 import Success from "./components/Success";
-
+import VerifyOTP from "./components/VerifyOTP";
 function App() {
   const { i18n } = useTranslation();
   const navigate = useNavigate();
@@ -66,7 +66,7 @@ function App() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/login" element={<Login />} />
         <Route path="/sign" element={<SignUp />} />
-        
+        <Route path="/verify-otp" element={<VerifyOTP />} />
         <Route 
           path="/payment" 
           element={

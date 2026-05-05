@@ -1,80 +1,100 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import Seat from "./Seats"; 
+
+interface APISeat {
+  seatId: string;
+  number: number;
+  status: string;
+  price: number;
+  row: number;
+  position: string;
+}
 
 export default function Chair(): React.ReactElement {
   const navigate = useNavigate();
-  const totalSeats = 88;
+  const { tripId } = useParams<{ tripId: string }>();
+  const [seats, setSeats] = useState<APISeat[]>([]);
   const [selected, setSelected] = useState<number[]>([]);
-  const booked = [10, 11, 25, 26, 40, 41]; 
-  
-  // سعر الكرسي الواحد
-  const pricePerSeat = 150;
+  const [loading, setLoading] = useState(true);
+
+  const pricePerSeat = Number(localStorage.getItem("selectedTrainPrice")) || 0;
+
+  useEffect(() => {
+    const fetchSeats = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const idToUse = tripId || "69ea74eec2277ffb0258eafd";
+        
+        const response = await fetch(`https://trainbookingapp.fly.dev/api/v1/users/trips/${idToUse}/seats`, {
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        const resData = await response.json();
+        if (resData.success && resData.data.seats) {
+          setSeats(resData.data.seats);
+        }
+      } catch (err) {
+        console.error("Fetch Error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSeats();
+  }, [tripId]);
 
   const toggleSeat = (num: number): void => {
-    if (booked.includes(num)) return;
-    setSelected(prev => 
-      prev.includes(num) ? prev.filter(s => s !== num) : [...prev, num]
-    );
+    const seat = seats.find(s => s.number === num);
+    if (!seat || seat.status === "booked") return;
+    setSelected(prev => prev.includes(num) ? prev.filter(s => s !== num) : [...prev, num]);
   };
 
-  // --- الدالة المسؤولة عن حفظ البيانات والربط مع التذكرة ---
   const handleConfirm = () => {
     if (selected.length === 0) return;
 
-    // تحويل مصفوفة الأرقام لنص مرتب (مثال: Seat 1, Seat 2)
+    const selectedFullIds = seats
+      .filter(s => selected.includes(s.number))
+      .map(s => s.seatId);
+
     const seatsString = selected.sort((a, b) => a - b).map(s => `Seat ${s}`).join(", ");
-    const totalPrice = selected.length * pricePerSeat;
-
-    // حفظ البيانات في localStorage لتستلمها صفحة التذكرة
+    
+    localStorage.setItem("selectedSeatIds", JSON.stringify(selectedFullIds));
     localStorage.setItem("selectedSeat", `COACH 01 - ${seatsString}`);
-    localStorage.setItem("selectedPrice", totalPrice.toString());
+    localStorage.setItem("selectedPrice", (selected.length * pricePerSeat).toString());
 
-    // الانتقال لصفحة بيانات الركاب
     navigate("/passenger");
   };
 
   const renderRows = () => {
-    const rows = [];
-    let seatNum = 1;
+    const rows: React.ReactElement[] = [];
+    const groupedSeats: { [key: number]: APISeat[] } = {};
+    
+    seats.forEach(seat => {
+      const r = seat.row || 1;
+      if (!groupedSeats[r]) groupedSeats[r] = [];
+      groupedSeats[r].push(seat);
+    });
 
-    for (let i = 0; i < totalSeats / 4; i++) {
+    Object.keys(groupedSeats).sort((a, b) => Number(a) - Number(b)).forEach((rowNum) => {
+      const rowSeats = groupedSeats[Number(rowNum)].sort((a, b) => a.number - b.number);
       rows.push(
-        <div key={i} className="flex items-center justify-between mb-2 w-full max-w-[350px] mx-auto">
-          {/* الجانب الأيسر */}
+        <div key={rowNum} className="flex items-center justify-between mb-2 w-full max-w-[350px] mx-auto">
           <div className="flex gap-1">
-            {[1, 2].map(() => {
-              const num = seatNum++;
-              return (
-                <Seat 
-                  key={num} 
-                  number={num} 
-                  status={booked.includes(num) ? "booked" : selected.includes(num) ? "selected" : "available"}
-                  onClick={() => toggleSeat(num)}
-                />
-              );
-            })}
+            {rowSeats.slice(0, 2).map(s => (
+              <Seat key={s.seatId} number={s.number} status={s.status === "booked" ? "booked" : selected.includes(s.number) ? "selected" : "available"} onClick={() => toggleSeat(s.number)} />
+            ))}
           </div>
-
           <div className="text-[10px] text-gray-300 font-bold uppercase rotate-90">Aisle</div>
-
-          {/* الجانب الأيمن */}
           <div className="flex gap-1">
-            {[1, 2].map(() => {
-              const num = seatNum++;
-              return (
-                <Seat 
-                  key={num} 
-                  number={num} 
-                  status={booked.includes(num) ? "booked" : selected.includes(num) ? "selected" : "available"}
-                  onClick={() => toggleSeat(num)}
-                />
-              );
-            })}
+            {rowSeats.slice(2, 4).map(s => (
+              <Seat key={s.seatId} number={s.number} status={s.status === "booked" ? "booked" : selected.includes(s.number) ? "selected" : "available"} onClick={() => toggleSeat(s.number)} />
+            ))}
           </div>
         </div>
       );
-    }
+    });
     return rows;
   };
 
@@ -90,35 +110,24 @@ export default function Chair(): React.ReactElement {
         </div>
       </header>
 
-      <div className="w-[50%] m-auto py-10 bg-white mt-2 flex justify-center items-center">
-          <div className="w-5 h-5 rounded-[5px] bg-white border-gray-700 border-[1px]"></div>
-          <h2 className="text-[22px] text-[#383838] mr-10 ml-1">Available</h2>
-          <div className="w-5 h-5 rounded-[5px] bg-red-600 border-gray-700 border-[1px]"></div>
-          <h2 className="text-[22px] text-[#383838] mr-10 ml-1">Selected</h2>
-          <div className="w-5 h-5 rounded-[5px] bg-black border-gray-700 border-[1px]"></div>
-          <h2 className="text-[22px] text-[#383838]  ml-1">Booked</h2>
+      <div className="w-full max-w-md m-auto py-10 bg-white mt-2 flex justify-center items-center px-4">
+          <div className="flex items-center"><div className="w-5 h-5 bg-white border border-gray-700"></div><h2 className="ml-2 mr-6">Available</h2></div>
+          <div className="flex items-center"><div className="w-5 h-5 bg-red-600 border border-gray-700"></div><h2 className="ml-2 mr-6">Selected</h2></div>
+          <div className="flex items-center"><div className="w-5 h-5 bg-black border border-gray-700"></div><h2 className="ml-2">Booked</h2></div>
       </div>
 
-      {/* منطقة الكراسي */}
       <div className="flex-grow overflow-y-auto p-4 bg-gray-50/50 mt-4 shadow-inner">
         <div className="flex flex-col items-center">
-           {renderRows()}
+           {loading ? <div className="mt-10 font-bold text-gray-400">Loading Seats...</div> : renderRows()}
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="p-6 bg-white border-t border-gray-100 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
+      <div className="p-6 bg-white border-t border-gray-100 shadow-lg">
         <div className="flex justify-between items-center mb-4">
           <div className="text-sm font-bold text-gray-300">Selected: <span className="text-[#b32121]">{selected.length}</span></div>
           <div className="text-xl font-black">{selected.length * pricePerSeat} EGP</div>
         </div>
-        <button 
-          disabled={selected.length === 0}
-          onClick={handleConfirm} // تم الربط بالدالة الجديدة
-          className="w-full py-4 bg-[#b32121] disabled:bg-gray-300 text-white font-black rounded-2xl shadow-xl transition-all active:scale-95 uppercase"
-        >
-          Confirm Booking
-        </button>
+        <button disabled={selected.length === 0} onClick={handleConfirm} className="w-full py-4 bg-[#b32121] disabled:bg-gray-300 text-white font-black rounded-2xl shadow-xl transition-all active:scale-95 uppercase">Confirm Booking</button>
       </div>
     </div>
   );

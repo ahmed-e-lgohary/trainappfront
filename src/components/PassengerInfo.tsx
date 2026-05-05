@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Payment from "./Payment";
 
 export default function PassengerPage() {
   const [isSelf, setIsSelf] = useState(true);
@@ -9,35 +10,96 @@ export default function PassengerPage() {
   const [email, setEmail] = useState("");
   const [nationalId, setNationalId] = useState("");
   const [gender, setGender] = useState("Gender");
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
   const [tripInfo, setTripInfo] = useState({ from: "", to: "", date: "" });
 
   useEffect(() => {
-    // سحب بيانات الرحلة من البحث
     const from = localStorage.getItem("departureCity") || "From";
     const to = localStorage.getItem("destinationCity") || "To";
     const date = localStorage.getItem("travelDate") || new Date().toLocaleDateString('en-GB');
     setTripInfo({ from, to, date });
   }, []);
 
-  const handleConfirmAction = () => {
-    const isLoggedIn = localStorage.getItem("token");
+  const handleConfirmAction = async () => {
+    const token = localStorage.getItem("token");
+    const rawSeats = localStorage.getItem("selectedSeatIds");
+    const selectedSeatIds = rawSeats ? JSON.parse(rawSeats) : [];
 
-    if (!isLoggedIn) {
+    const selectedTripRaw = localStorage.getItem("selectedTrip");
+    const selectedTrip = selectedTripRaw ? JSON.parse(selectedTripRaw) : {};
+
+    if (!token) {
       alert("Please login to continue.");
       navigate("/login");
       return;
     }
 
-    // حفظ البيانات الحقيقية اللي كتبتها عشان التذكرة تشوفها
-    localStorage.setItem("passengerName", fullName || "Guest Passenger");
-    localStorage.setItem("passengerPhone", phone);
-    localStorage.setItem("passengerID", nationalId);
-    localStorage.setItem("passengerGender", gender);
+    if (selectedSeatIds.length === 0) {
+      alert("No seats selected. Please go back and select a seat.");
+      return;
+    }
 
-    navigate("/payment");
+    setLoading(true);
+
+    try {
+      // نظام الـ Backup لحفظ البيانات محلياً
+      const bookingBackup = {
+        trainName: selectedTrip.trainNumber ? `Train ${selectedTrip.trainNumber}` : "ENR Train",
+        from: tripInfo.from,
+        to: tripInfo.to,
+        date: selectedTrip.departureTime || tripInfo.date,
+        userName: fullName,
+        seat: localStorage.getItem("selectedSeat") || `Seats: ${selectedSeatIds.length}`, 
+        price: localStorage.getItem("selectedPrice") || "0"
+      };
+      localStorage.setItem("last_booking_backup", JSON.stringify(bookingBackup));
+
+      const bookingData = {
+        seatIds: selectedSeatIds,
+        passengers: [
+          {
+            name: fullName,
+            age: 23, 
+            gender: gender.toLowerCase() === "male" ? "male" : "female",
+            email: email,
+            phone: phone
+          }
+        ]
+      };
+
+      const response = await fetch("https://trainbookingapp.fly.dev/api/v1/users/bookings/pay", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(bookingData)
+      });
+
+      const resData = await response.json();
+
+      if (response.ok && resData.success) {
+        localStorage.setItem("passengerName", fullName);
+        localStorage.setItem("passengerPhone", phone);
+        localStorage.setItem("passengerID", nationalId);
+        localStorage.setItem("passengerGender", gender);
+        navigate("/my");
+      } else {
+        alert(resData.message || "Booking failed.");
+      }
+    } catch (error) {
+      console.error("Booking Error:", error);
+      alert("Something went wrong. Please check your connection.");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // جلب الثيم الحالي لحل مشكلة TypeScript في مكون Payment
+  const currentTheme = localStorage.getItem("theme") || "light";
+  const totalPrice = Number(localStorage.getItem("selectedPrice")) || 0;
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 flex flex-col items-center mt-15">
@@ -58,19 +120,25 @@ export default function PassengerPage() {
         </div>
 
         <div className="space-y-5">
-          <input className="w-full px-5 py-4 rounded-xl bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 outline-none dark:text-white" placeholder="Full Name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
-          <input className="w-full px-5 py-4 rounded-xl bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 outline-none dark:text-white" placeholder="Phone Number" value={phone} onChange={(e) => setPhone(e.target.value)} />
-          <input className="w-full px-5 py-4 rounded-xl bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 outline-none dark:text-white" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} />
-          {!isSelf && <input className="w-full px-5 py-4 rounded-xl bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 outline-none dark:text-white" placeholder="National ID" value={nationalId} onChange={(e) => setNationalId(e.target.value)} />}
-          <select className="w-full px-5 py-4 rounded-xl bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 outline-none dark:text-white" value={gender} onChange={(e) => setGender(e.target.value)}>
+          <input className="w-full px-5 py-4 rounded-xl bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 outline-none dark:text-white"
+           placeholder="Full Name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+          <input className="w-full px-5 py-4 rounded-xl bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 outline-none dark:text-white"
+           placeholder="Phone Number" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          <input className="w-full px-5 py-4 rounded-xl bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 outline-none dark:text-white"
+           placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} />
+          {!isSelf && <input className="w-full px-5 py-4 rounded-xl bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 outline-none dark:text-white"
+           placeholder="National ID" value={nationalId} onChange={(e) => setNationalId(e.target.value)} />}
+          <select className="w-full px-5 py-4 rounded-xl bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 outline-none dark:text-white"
+           value={gender} onChange={(e) => setGender(e.target.value)}>
             <option>Gender</option>
             <option>Male</option>
             <option>Female</option>
           </select>
-          <button className="w-full mt-6 bg-[#b32121] text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all" onClick={() => setShowModal(true)}>Continue</button>
+          <button disabled={loading} className="w-full mt-6 bg-[#b32121] text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all disabled:bg-gray-400" 
+          onClick={() => setShowModal(true)}>{loading ? "Processing..." : "Continue"}</button>
         </div>
       </div>
-
+            
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-[#252525] w-full max-w-md rounded-[25px] overflow-hidden shadow-2xl">
@@ -87,12 +155,20 @@ export default function PassengerPage() {
               </div>
               <div className="flex gap-4 mt-8">
                 <button className="flex-1 py-3 border rounded-xl dark:text-white" onClick={() => setShowModal(false)}>Cancel</button>
-                <button onClick={handleConfirmAction} className="flex-1 py-3 bg-[#b32121] text-white rounded-xl font-bold">Confirm</button>
+                <button disabled={loading} onClick={handleConfirmAction}
+                 className="flex-1 py-3 bg-[#b32121] text-white rounded-xl font-bold disabled:bg-gray-400">
+                  {loading ? "Booking..." : "Confirm"}</button>
               </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* استدعاء Payment مع تمرير الخصائص المطلوبة */}
+      <Payment 
+        theme={currentTheme} 
+        paymentAmount={totalPrice} 
+      />
     </div>
   );
 }

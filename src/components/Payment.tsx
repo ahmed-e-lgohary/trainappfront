@@ -84,19 +84,19 @@ const Payment: React.FC<PaymentProps> = ({ toggleLang, toggleTheme, theme, payme
         if (walletData.iframe_redirection_url) {
           window.location.href = walletData.iframe_redirection_url;
         } else {
-          alert("حدث خطأ في استخراج رابط المحفظة");
+          alert("An error occurred while extracting the wallet link");
         }
       }
     } catch (err) {
       console.error(err);
-      alert("حدث خطأ في الاتصال");
+      alert("Connection error");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className={`mt-20 min-h-screen py-10 px-4 transition-all duration-300 ${theme === 'dark' ? 'bg-[#252525eb]' : 'bg-[#fdfdfde0]'}`}>
+    <div className={`mt-20 min-h-screen w-[42%] py-10 px-4 transition-all duration-300 ${theme === 'dark' ? 'bg-[#252525eb]' : 'bg-[#fdfdfde0]'}`}>
       <div className="max-w-[1170px] mx-auto bg-[#f5f5f5] dark:bg-[#252525] rounded-[30px] shadow-2xl border border-[#9c2121a8] p-10 md:p-14 relative overflow-hidden">
         <div className="p-2 border border-transparent rounded-[30px] shadow-[inset_0_0_5px_1px_#e56510] relative">
           
@@ -137,7 +137,7 @@ const Payment: React.FC<PaymentProps> = ({ toggleLang, toggleTheme, theme, payme
             <div className="mt-4 max-w-xs mx-auto animate-fade-in">
               <input 
                 type="text" 
-                placeholder="أدخل رقم المحفظة (01xxxxxxxxx)"
+                placeholder="Please enter your wallet number(01xxxxxxxxx)"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 className="w-full p-3 rounded-xl border border-[#e56510] bg-transparent dark:text-white text-center outline-none focus:ring-2 ring-[#e56510] placeholder:text-gray-500 text-sm font-bold"

@@ -1,6 +1,12 @@
 import React, { useState, useRef } from 'react';
+import axios from 'axios'; 
 import bgImage from '../assets/packground.jpg'; 
 import { useNavigate } from 'react-router-dom';
+
+interface SignupResponse {
+  success: boolean;
+  msg: string;
+}
 
 const SignUp: React.FC = () => {
   const [showPass, setShowPass] = useState<boolean>(false);
@@ -29,58 +35,44 @@ const SignUp: React.FC = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const emailValue = emailRef.current?.value || "";
     const password = passRef.current?.value || "";
     const confirmPassword = confirmPassRef.current?.value || "";
 
     if (password !== confirmPassword) {
-      alert("كلمات السر غير متطابقة!");
+      alert("Passwords do not match!");
       return;
     }
 
     setLoading(true);
 
     const userData = {
-      name: nameRef.current?.value,
-      email: emailRef.current?.value,
+      name: nameRef.current?.value || "",
+      email: emailValue,
+      phone: phoneRef.current?.value || "",
       password: password,
-      passwordConfirm: confirmPassword,
-      phone: phoneRef.current?.value,
+      confirmPassword: confirmPassword,
     };
 
     try {
-      const response = await fetch('https://trainbookingapp.fly.dev/api/v1/email/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(userData),
-      });
+      const response = await axios.post<SignupResponse>('https://trainbookingapp.fly.dev/api/v1/email/signup', userData);
 
-      const data = await response.json();
-
-      if (response.ok) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("userAccount", "true");
-        alert("تم إنشاء الحساب بنجاح!");
-        navigate("/passenger");
-      } else {
-        // حل مشكلة الـ any هنا عن طريق تحديد نوع الخطأ بوضوح
-        let errorMessage = data.message || "تأكد من البيانات";
-        
-        if (data.errors) {
-            // تحويل الـ errors لمصفوفة واستخراج الرسائل بدون any
-            errorMessage = Object.values(data.errors)
-                .map((err) => (err as { message: string }).message)
-                .join("\n");
-        }
-        
-        alert(`فشل التسجيل:\n${errorMessage}`);
-        console.error("Server Response:", data);
+      if (response.data.success) {
+        // السطر ده هو اللي بيبدأ "تجربة الكود" وبياخدك لصفحة الـ OTP
+        navigate("/verify-otp", { state: { email: emailValue } });
       }
-    } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : "حدث خطأ في الاتصال";
-      alert(msg);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const serverData = err.response?.data as { msg?: string };
+        const message = serverData?.msg || "Error";
+
+        // لو الحساب موجود أصلاً، برضه ابعته لصفحة الـ OTP عشان يفعل
+        if (message.includes("already sent") || message.includes("Verify first")) {
+          navigate("/verify-otp", { state: { email: emailValue } });
+          return;
+        }
+        alert(message);
+      }
     } finally {
       setLoading(false);
     }
@@ -160,7 +152,7 @@ const SignUp: React.FC = () => {
             <button 
               type="submit" 
               disabled={loading}
-              className={`w-full py-4 bg-[#b32121] text-white font-bold rounded-xl mt-2 hover:bg-red-700 transition-colors shadow-lg ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`w-full py-4 bg-[#b32121] text-white font-bold rounded-xl mt-2 hover:bg-red-700 transition-colors shadow-lg ${loading ? 'opacity-50' : ''}`}
             >
               {loading ? "REGISTERING..." : "REGISTER"}
             </button>
