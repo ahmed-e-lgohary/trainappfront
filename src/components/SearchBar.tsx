@@ -1,26 +1,30 @@
 import { useState } from "react";
 import { FaArrowRight } from "react-icons/fa";
+
 export type SearchData = {
   from: string;
   to: string;
   date: string;
   classType: string;
 };
+
 type Props = {
   onSearch: (data: SearchData) => void;
 };
+
+// تم تحديث الـ IDs والأسماء لتطابق ملف Trips2.txt تماماً
 const serverStations = [
+  { name: "Cairo Central Station", id: "6a07f72d5175f779df23d173" },
+  { name: "Aswan Station", id: "6a07f72d5175f779df23d18b" },
   { name: "Sohag", id: "69e9bc1f9781f85ddaf3d26d" },
   { name: "Akhmim", id: "69e9bc1f9781f85ddaf3d26e" },
   { name: "Kom Ombo", id: "69e9bb519781f85ddaf3d240" },
   { name: "Deir Mawas", id: "69e9bb519781f85ddaf3d230" },
   { name: "Mallawi", id: "69e9bb519781f85ddaf3d22f" },
   { name: "Tahta", id: "69e9bb519781f85ddaf3d235" },
-  { name: "Aswan", id: "69e9bb519781f85ddaf3d241" },
   { name: "Assiut", id: "69e9bb519781f85ddaf3d231" },
   { name: "Abnoub", id: "69e9bb519781f85ddaf3d232" },
   { name: "Manfalut", id: "69e9bb519781f85ddaf3d233" },
-  { name: "Cairo Ramses", id: "69e9bbf49781f85ddaf3d248" },
   { name: "Giza", id: "69e9bbf49781f85ddaf3d24a" },
   { name: "Bashtil", id: "69e9bbf49781f85ddaf3d249" },
   { name: "Ismailia", id: "69e9bbf49781f85ddaf3d260" },
@@ -28,6 +32,7 @@ const serverStations = [
   { name: "Luxor", id: "69e9bc1f9781f85ddaf3d274" },
   { name: "Edfu", id: "69e9bc1f9781f85ddaf3d276" }
 ];
+
 const SearchBar = ({ onSearch }: Props) => {
   const [fromName, setFromName] = useState<string>("");
   const [toName, setToName] = useState<string>("");
@@ -97,4 +102,5 @@ const SearchBar = ({ onSearch }: Props) => {
     </div>
   );
 };
+
 export default SearchBar;

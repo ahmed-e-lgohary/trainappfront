@@ -35,7 +35,7 @@ const Success = () => {
 
       // التحويل التلقائي لصفحة التذاكر بعد 3 ثواني
       setTimeout(() => {
-        navigate('/passenger');
+        navigate('/my');
       }, 3000);
     }
   }, [location, navigate]);

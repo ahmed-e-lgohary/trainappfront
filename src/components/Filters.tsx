@@ -1,5 +1,4 @@
 import React from 'react';
-// إضافة كلمة type هنا هي اللي هتحل المشكلة
 import type { FiltersType } from './BookTickets'; 
 
 type Props = {
@@ -14,6 +13,7 @@ const Filters = ({ filters, setFilters }: Props) => {
 
       <div>
         <p>Class</p>
+        {/* المصفوفة مطابقة تماماً لمحتويات وفصل الكروت */}
         {["VIP", "First Class", "Second Class"].map((type) => (
           <label key={type} className="block">
             <input

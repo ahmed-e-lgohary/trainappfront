@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Payment from "./Payment";
 
 export default function PassengerPage() {
   const [isSelf, setIsSelf] = useState(true);
@@ -69,7 +68,7 @@ export default function PassengerPage() {
         ]
       };
 
-      const response = await fetch("https://trainbookingapp.fly.dev/api/v1/users/bookings/pay", {
+      const response = await fetch("https://trainbookingapp.fly.dev/api/v1/users/payment", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -85,7 +84,7 @@ export default function PassengerPage() {
         localStorage.setItem("passengerPhone", phone);
         localStorage.setItem("passengerID", nationalId);
         localStorage.setItem("passengerGender", gender);
-        navigate("/my");
+        navigate("/payment");
       } else {
         alert(resData.message || "Booking failed.");
       }
@@ -96,10 +95,6 @@ export default function PassengerPage() {
       setLoading(false);
     }
   };
-
-  // جلب الثيم الحالي لحل مشكلة TypeScript في مكون Payment
-  const currentTheme = localStorage.getItem("theme") || "light";
-  const totalPrice = Number(localStorage.getItem("selectedPrice")) || 0;
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 flex flex-col items-center mt-15">
@@ -163,12 +158,6 @@ export default function PassengerPage() {
           </div>
         </div>
       )}
-
-      {/* استدعاء Payment مع تمرير الخصائص المطلوبة */}
-      <Payment 
-        theme={currentTheme} 
-        paymentAmount={totalPrice} 
-      />
     </div>
   );
 }
