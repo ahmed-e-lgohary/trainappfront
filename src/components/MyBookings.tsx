@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
-import { useNavigate } from 'react-router-dom';
+
 
 interface SeatInfo {
   number: number;
@@ -40,7 +40,6 @@ interface MyBookingsProps {
 }
 
 const MyBookings = ({ theme, onBack }: MyBookingsProps) => {
-  const navigate = useNavigate();
   const ticketRef = useRef<HTMLDivElement>(null);
   const [ticketData, setTicketData] = useState<TicketData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -71,10 +70,6 @@ const MyBookings = ({ theme, onBack }: MyBookingsProps) => {
   const fetchLastBooking = async () => {
     const token = localStorage.getItem("token");
     
-    if (!token) {
-      navigate("/login");
-      return;
-    }
 
     try {
       const response = await fetch("https://trainbookingapp.fly.dev/api/v1/users/bookings", {
@@ -171,7 +166,7 @@ const MyBookings = ({ theme, onBack }: MyBookingsProps) => {
   );
 
   return (
-    <div className={`min-h-screen mt-16 ${theme === 'dark' ? 'dark bg-[#1a1a1a]' : 'bg-white'}`}>
+    <div className={`min-h-screen mt-16`}>
       <div className="bg-red-800 text-[35px] p-[25px] text-white font-bold
        text-center flex justify-between items-center px-10">
         <button onClick={onBack} className="text-white text-2xl">

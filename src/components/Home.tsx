@@ -19,6 +19,29 @@ const Home = () => {
     const [users, setUsers] = useState(0);
     const [stations, setStations] = useState(0);
 
+    // تأثير مراقبة خاص بصفحة الهوم ومحكوم بكلاس الهوم والسيتنج بس
+    useEffect(() => {
+        const savedDarkMode = localStorage.getItem("darkMode");
+        let styleTag = document.getElementById("local-dark-text");
+
+        if (savedDarkMode === "true") {
+            if (!styleTag) {
+                styleTag = document.createElement("style");
+                styleTag.id = "local-dark-text";
+                styleTag.innerHTML = `
+                    .home-page *, .settings-page * {
+                        color: #ffffff !important;
+                    }
+                `;
+                document.head.appendChild(styleTag);
+            }
+        } else {
+            if (styleTag) {
+                styleTag.remove();
+            }
+        }
+    }, []);
+
     useEffect(() => {
         const fetchStats = async () => {
             try {
@@ -62,7 +85,8 @@ const Home = () => {
     ];
 
     return (
-        <div>
+        // ضفنا كلاس home-page هنا في الديف الرئيسي عشان الستايل يشتغل على صفحة الهوم دي بس!
+        <div className="home-page">
             <div className=" w-full h-[100vh] bgimg bg-cover bg-center flex justify-center items-end pb-5 shadow-2xl mt-16" style={{ backgroundImage: `URL(${bgimg})` }}>
                 <div>
                     <h2 className='sm:text-[40px] font-bold text-white text-[20px] text-center'>Book Your Train Ticket Easily And Secureiy</h2>
@@ -86,28 +110,28 @@ const Home = () => {
                 <div className='w-full sm:w-[65%] sm:h-[60vh] h-auto '>
                     <div className='w-full h-auto flex justify-between items-center sm:h-[35%]'>
                         <div className='w-[30%] h-full '>
-                            <h2 className='text-center pt-8 flex justify-center items-center text-[40px] text-amber-500 font-bold'>
-                                {daily}<span className='text-[20px]'><FaPlus /></span>
+                            <h2 className='text-center pt-8 flex justify-center items-center text-[40px] !text-amber-500 font-bold'>
+                                {daily}<span className='text-[20px] '><FaPlus /></span>
                             </h2>
                             <p className='text-center text-[#6b6b6bc2] text-[20px] font-bold'>Daily Trips</p>
                         </div>
                         <div className='w-[1px] h-[60px] bg-[#cacaca] shadow'></div>
                         <div className='w-[30%] h-full '>
-                            <h2 className='text-center pt-8 flex justify-center items-center text-[40px] text-amber-500 font-bold'>
-                                {users}<span className='text-[20px]'><FaPlus /></span>
+                            <h2 className='text-center pt-8 flex justify-center items-center text-[40px] !text-amber-500 font-bold'>
+                                {users}<span className='text-[20px] '><FaPlus className='' /></span>
                             </h2>
                             <p className='text-center text-[#6b6b6bc2] text-[20px] font-bold'>Users</p>
                         </div>
                         <div className='w-[1px] h-[60px] bg-[#cacaca] shadow'></div>
                         <div className='w-[30%] h-full '>
-                            <h2 className='text-center pt-8 flex justify-center items-center text-[40px] text-amber-500 font-bold'>
-                                {stations}<span className='text-[20px]'><FaPlus /></span>
+                            <h2 className='text-center pt-8 flex justify-center items-center text-[40px] !text-amber-500 font-bold'>
+                                {stations}<span className='text-[20px] '><FaPlus /></span>
                             </h2>
                             <p className='text-center text-[#6b6b6bc2] text-[20px] font-bold'>Stations</p>
                         </div>
                     </div>
                     <div className='w-full h-auto sm:h-[65%]'>
-                        <h2 className='text-[#2a2a2a] text-[30px] sm:text-[40px] sm:pl-18.5 sm:pt-5 pt-7 pb-3'>Get The <span className='font-bold text-red-700'>ENR <span>TICKET</span></span> App</h2>
+                        <h2 className='text-[#2a2a2a] text-[30px] sm:text-[40px] sm:pl-18.5 sm:pt-5 pt-7 pb-3'>Get The <span className='font-bold !text-red-700'>ENR <span className='!text-red-700'>TICKET</span></span> App</h2>
                         <div className='flex justify-around items-center w-full sm:w-[60%] mt-5 sm:ml-10 '>
                             <img src={img8} alt="" className='w-[200px] sm:ml-5 rounded-[8px] shadow-2xl' />
                             <img src={img9} alt="" className='w-[200px] rounded-[8px] shadow-2xl ml-2' />

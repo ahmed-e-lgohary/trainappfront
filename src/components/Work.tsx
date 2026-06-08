@@ -16,7 +16,7 @@ const Work = ({postName,postTitle,children}:WorkProps) => {
         </div>
         <div className='w-[1px] h-[65px] bg-[#cacaca] shadow'></div>
         <div className='w-[72%] rounded-[10px] h-full'>
-            <h2 className='text-[#333333] font-bold text-center text-[18px] pt-8'>{postName}</h2>
+            <h2 className='text-[#333333]  font-bold text-center text-[18px] pt-8'>{postName}</h2>
             <p className='text-[#5252528c]  text-center text-[17px] w-[80%] m-auto pt-3'>{postTitle}</p>
         </div>
     </div>

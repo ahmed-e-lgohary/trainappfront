@@ -71,10 +71,11 @@ const BookTickets: React.FC = () => {
         console.log("Fetch failed, activating backup data...", fetchErr);
       }
 
+      // خطة الإنقاذ البديلة بالـ ID الحقيقي للرحلة المتاحة عندك
       if (tripsArray.length === 0) {
         tripsArray = [
           {
-            _id: "66487e35ccb801de834dfd22", 
+            _id: "6a081473010f36fd132b609b", 
             departureDate: `${searchParams.date}T14:00:00.000Z`,
             arrivalDate: `${searchParams.date}T02:00:00.000Z`,
             price: 300,
@@ -109,18 +110,19 @@ const BookTickets: React.FC = () => {
           to: trip.toStationName || localStorage.getItem("destinationCity") || "Aswan Station", 
           fromTime: formatTime(depDate),
           toTime: formatTime(arrDate),
-          duration: "4h",
+          duration: "12h",
         };
 
-        mappedResults.push({ ...baseTrain, class: "Second Class", price: (trip.price || 300).toString() });
-        mappedResults.push({ ...baseTrain, class: "First Class", price: ((trip.price || 300) + 100).toString() });
+        // توليد الـ 3 درجات بالأسماء المظبوطة بالملي عشان الفلتر يلقطها
         mappedResults.push({ ...baseTrain, class: "VIP", price: ((trip.price || 300) + 200).toString() });
+        mappedResults.push({ ...baseTrain, class: "First Class", price: ((trip.price || 300) + 100).toString() });
+        mappedResults.push({ ...baseTrain, class: "Second Class", price: (trip.price || 300).toString() });
       });
       
       setResults(mappedResults);
 
     } catch (err: unknown) {
-      console.error("Outer search error:", err);
+      console.error("Outer search error log:", err);
       setError("An error occurred while loading trips.");
       setResults([]);
     } finally {
@@ -128,8 +130,9 @@ const BookTickets: React.FC = () => {
     }
   };
 
+  // الحل السحري هنا: تحويل الطرفين لـ toLowerCase() وتجنب أي مشاكل في المسافات أو حالة الأحرف
   const filteredResults = results.filter((train) => {
-    if (filters.class === "") return true; 
+    if (!filters.class || filters.class === "") return true; 
     return train.class.trim().toLowerCase() === filters.class.trim().toLowerCase();
   });
 

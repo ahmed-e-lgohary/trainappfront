@@ -12,13 +12,13 @@ type Props = {
   onSearch: (data: SearchData) => void;
 };
 
-// تم تحديث الـ IDs والأسماء لتطابق ملف Trips2.txt تماماً
-const serverStations = [
+// تم تحديد نوع المصفوفة هنا صراحة لإنهاء مشكلة التايب سكريبت (any type index)
+const serverStations: { name: string; id: string; }[] = [
   { name: "Cairo Central Station", id: "6a07f72d5175f779df23d173" },
   { name: "Aswan Station", id: "6a07f72d5175f779df23d18b" },
   { name: "Sohag", id: "69e9bc1f9781f85ddaf3d26d" },
-  { name: "Akhmim", id: "69e9bc1f9781f85ddaf3d26e" },
-  { name: "Kom Ombo", id: "69e9bb519781f85ddaf3d240" },
+  { name: "Alexandria Main Station", id: "6a07f72d5175f779df23d178" },
+  { name: "Giza Station", id: "6a07f72d5175f779df23d174" },
   { name: "Deir Mawas", id: "69e9bb519781f85ddaf3d230" },
   { name: "Mallawi", id: "69e9bb519781f85ddaf3d22f" },
   { name: "Tahta", id: "69e9bb519781f85ddaf3d235" },
@@ -30,7 +30,10 @@ const serverStations = [
   { name: "Ismailia", id: "69e9bbf49781f85ddaf3d260" },
   { name: "Port Said", id: "69e9bbf49781f85ddaf3d261" },
   { name: "Luxor", id: "69e9bc1f9781f85ddaf3d274" },
-  { name: "Edfu", id: "69e9bc1f9781f85ddaf3d276" }
+  { name: "Edfu", id: "69e9bc1f9781f85ddaf3d276" },
+  { name: "Banha Station", id: "6a07f72d5175f779df23d175" },
+  { name: "Tanta Station", id: "6a07f72d5175f779df23d176" },
+  { name: "Damanhur Station", id: "6a07f72d5175f779df23d177" }
 ];
 
 const SearchBar = ({ onSearch }: Props) => {

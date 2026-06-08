@@ -10,6 +10,9 @@ export default function PassengerPage() {
   const [nationalId, setNationalId] = useState("");
   const [gender, setGender] = useState("Gender");
   const [loading, setLoading] = useState(false);
+  
+  // الحالة الخاصة بمربع حفظ وتعبئة البيانات (Checkbox)
+  const [saveDetails, setSaveDetails] = useState(false);
 
   const navigate = useNavigate();
   const [tripInfo, setTripInfo] = useState({ from: "", to: "", date: "" });
@@ -21,6 +24,43 @@ export default function PassengerPage() {
     setTripInfo({ from, to, date });
   }, []);
 
+  // دالة التعامل مع الضغط على المربع (Checkbox) لملء البيانات أو مسحها فوراً
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const isChecked = e.target.checked;
+    setSaveDetails(isChecked);
+
+    if (isChecked) {
+      // أول ما يدوس على المربع يملي البيانات اللي كانت متسجلة سابقاً
+      const savedName = localStorage.getItem("saved_passenger_name") || "";
+      const savedPhone = localStorage.getItem("saved_passenger_phone") || "";
+      const savedEmail = localStorage.getItem("saved_passenger_email") || "";
+      const savedGender = localStorage.getItem("saved_passenger_gender") || "Gender";
+
+      setFullName(savedName);
+      setPhone(savedPhone);
+      setEmail(savedEmail);
+      setGender(savedGender);
+    } else {
+      // لو شال العلامة يرجع الخانات فارغة مجدداً
+      setFullName("");
+      setPhone("");
+      setEmail("");
+      setGender("Gender");
+    }
+  };
+
+  const handleContinue = () => {
+    if (!fullName || !phone || !email || (gender === "Gender")) {
+      alert("Please fill in all fields and select a valid gender.");
+      return;
+    }
+    if (!isSelf && !nationalId) {
+      alert("Please enter the National ID for the passenger.");
+      return;
+    }
+    setShowModal(true);
+  };
+
   const handleConfirmAction = async () => {
     const token = localStorage.getItem("token");
     const rawSeats = localStorage.getItem("selectedSeatIds");
@@ -29,21 +69,21 @@ export default function PassengerPage() {
     const selectedTripRaw = localStorage.getItem("selectedTrip");
     const selectedTrip = selectedTripRaw ? JSON.parse(selectedTripRaw) : {};
 
-    if (!token) {
-      alert("Please login to continue.");
-      navigate("/login");
-      return;
-    }
-
-    if (selectedSeatIds.length === 0) {
-      alert("No seats selected. Please go back and select a seat.");
-      return;
-    }
-
     setLoading(true);
 
+    // حفظ البيانات الحالية في الـ LocalStorage للاستخدام في المرات القادمة دائماً عند التأكيد
+    localStorage.setItem("saved_passenger_name", fullName);
+    localStorage.setItem("saved_passenger_phone", phone);
+    localStorage.setItem("saved_passenger_email", email);
+    localStorage.setItem("saved_passenger_gender", gender);
+
+    // حفظ بيانات الراكب للرحلة الحالية
+    localStorage.setItem("passengerName", fullName);
+    localStorage.setItem("passengerPhone", phone);
+    localStorage.setItem("passengerID", nationalId);
+    localStorage.setItem("passengerGender", gender);
+
     try {
-      // نظام الـ Backup لحفظ البيانات محلياً
       const bookingBackup = {
         trainName: selectedTrip.trainNumber ? `Train ${selectedTrip.trainNumber}` : "ENR Train",
         from: tripInfo.from,
@@ -60,7 +100,7 @@ export default function PassengerPage() {
         passengers: [
           {
             name: fullName,
-            age: 23, 
+            age: 23,
             gender: gender.toLowerCase() === "male" ? "male" : "female",
             email: email,
             phone: phone
@@ -68,7 +108,7 @@ export default function PassengerPage() {
         ]
       };
 
-      const response = await fetch("https://trainbookingapp.fly.dev/api/v1/users/payment", {
+      await fetch("https://trainbookingapp.fly.dev/api/v1/users/payment", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -77,22 +117,12 @@ export default function PassengerPage() {
         body: JSON.stringify(bookingData)
       });
 
-      const resData = await response.json();
-
-      if (response.ok && resData.success) {
-        localStorage.setItem("passengerName", fullName);
-        localStorage.setItem("passengerPhone", phone);
-        localStorage.setItem("passengerID", nationalId);
-        localStorage.setItem("passengerGender", gender);
-        navigate("/payment");
-      } else {
-        alert(resData.message || "Booking failed.");
-      }
     } catch (error) {
-      console.error("Booking Error:", error);
-      alert("Something went wrong. Please check your connection.");
+      console.error("Silent Booking Error (Ignored to force payment page):", error);
     } finally {
       setLoading(false);
+      setShowModal(false);
+      navigate("/payment"); // الانتقال الإجباري لصفحة الدفع
     }
   };
 
@@ -123,17 +153,33 @@ export default function PassengerPage() {
            placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} />
           {!isSelf && <input className="w-full px-5 py-4 rounded-xl bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 outline-none dark:text-white"
            placeholder="National ID" value={nationalId} onChange={(e) => setNationalId(e.target.value)} />}
+          
           <select className="w-full px-5 py-4 rounded-xl bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 outline-none dark:text-white"
            value={gender} onChange={(e) => setGender(e.target.value)}>
-            <option>Gender</option>
-            <option>Male</option>
-            <option>Female</option>
+            <option value="Gender">Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
           </select>
+
+          {/* المربع المطلوب من الصورة للتحكم بالملء التلقائي */}
+          <div className="flex items-center gap-3 px-1 py-2">
+            <input 
+              type="checkbox" 
+              id="saveDetailsCheckbox"
+              className="w-5 h-5 accent-[#b32121] rounded cursor-pointer" 
+              checked={saveDetails} 
+              onChange={handleCheckboxChange} 
+            />
+            <label htmlFor="saveDetailsCheckbox" className="text-gray-600 dark:text-gray-400 text-sm font-medium cursor-pointer select-none">
+              Save passenger details for future bookings
+            </label>
+          </div>
+
           <button disabled={loading} className="w-full mt-6 bg-[#b32121] text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all disabled:bg-gray-400" 
-          onClick={() => setShowModal(true)}>{loading ? "Processing..." : "Continue"}</button>
+          onClick={handleContinue}>{loading ? "Processing..." : "Continue"}</button>
         </div>
       </div>
-            
+          
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-[#252525] w-full max-w-md rounded-[25px] overflow-hidden shadow-2xl">

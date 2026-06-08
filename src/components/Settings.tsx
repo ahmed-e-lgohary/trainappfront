@@ -39,13 +39,32 @@ const Settings: React.FC = () => {
 
   const t = isArabic ? translations.ar : translations.en;
 
+  // تأثير الدارك مود المحكوم للهوم والسيتنج بس
   useEffect(() => {
+    let styleTag = document.getElementById("local-dark-text");
+
     if (enabled) {
       document.documentElement.classList.add("dark");
       localStorage.setItem("darkMode", "true");
+
+      // الستايل هنا محكوم بـ .home-page و .settings-page بس ومبيأثرش على باقي الموقع
+      if (!styleTag) {
+        styleTag = document.createElement("style");
+        styleTag.id = "local-dark-text";
+        styleTag.innerHTML = `
+          .home-page *, .settings-page * {
+            color: #ffffff !important;
+          }
+        `;
+        document.head.appendChild(styleTag);
+      }
     } else {
       document.documentElement.classList.remove("dark");
       localStorage.setItem("darkMode", "false");
+      
+      if (styleTag) {
+        styleTag.remove();
+      }
     }
   }, [enabled]);
 
@@ -59,43 +78,43 @@ const Settings: React.FC = () => {
     }
   }, [isArabic]);
 
-  // دالة تسجيل الخروج
   const handleLogout = (): void => {
-    localStorage.removeItem("token"); // مسح التوكن لحل مشكلة الـ 403
-    navigate("/login"); // التوجيه لصفحة اللوجين
+    localStorage.removeItem("token"); 
+    navigate("/login"); 
   };
 
   return (
-    <div className="w-[75%] m-auto mt-16 transition duration-300 h-[100vh]">
-      <h1 className="text-[35px] font-bold dark:text-white mb-5">{t.title}</h1>
+    // ضفنا كلاس settings-page هنا عشان الستايل يمسك فيه هو بس
+    <div className="settings-page w-[75%] m-auto mt-16 transition duration-300 h-[100vh]">
+      <h1 className="text-[35px] font-bold  mb-5 ">{t.title}</h1>
       
       {/* Dark Mode Row */}
       <div className="flex items-center justify-between pt-10">
-        <h2 className="text-[30px] font-bold !text-[#5f5f5f] dark:text-white">
+        <h2 className="text-[30px] font-bold ">
           {t.darkMode}
         </h2>
         <div className="flex items-center gap-3">
-          <span className="text-sm !text-black dark:text-white">
+          <span className="text-sm  ">
             {enabled ? t.statusOn : t.statusOff}
           </span>
           <div
             onClick={() => setEnabled((prev) => !prev)}
             className={`w-[50px] h-[20px] border-[2px] rounded-full cursor-pointer flex items-center px-[2px] transition duration-300 ${enabled ? "bg-green-500 border-green-500" : "bg-gray-300 border-gray-600"}`}
           >
-            <div className={`w-[18px] h-[16px] bg-white rounded-full transition duration-300 ${enabled ? "translate-x-[26px]" : "translate-x-0"}`}></div>
+            <div  className={`w-[18px] h-[16px] bg-white rounded-full transition duration-300 ${enabled ? "translate-x-[26px]" : "translate-x-0"}`}></div>
           </div>
         </div>
       </div>
       
-      <div className="w-full h-[1px] bg-[#ccc] mt-4 dark:bg-gray-600"></div>
+      <div className="w-full h-[1px] bg-[#ccc] mt-4 dark:bg-gray-500"></div>
 
       {/* Language Row */}
       <div className="flex items-center justify-between pt-5">
-        <h2 className="text-[30px] font-bold !text-[#5f5f5f] dark:text-white mt-5">
+        <h2 className="text-[30px] font-bold  mt-5">
           {t.language}
         </h2>
         <div className="flex items-center gap-3 mt-5">
-          <span className="text-sm !text-black dark:text-white">
+          <span className="text-sm ">
             {t.langName}
           </span>
           <div
@@ -111,7 +130,7 @@ const Settings: React.FC = () => {
 
       {/* Logout Row */}
       <div className="flex items-center justify-between pt-10">
-        <h2 className="text-[30px] font-bold text-red-600">
+        <h2 className="text-[30px] font-bold !text-red-600">
           {t.logout}
         </h2>
         <button
