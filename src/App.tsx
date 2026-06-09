@@ -66,6 +66,7 @@ function App() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/login" element={<Login />} />
         <Route path="/sign" element={<SignUp />} />
+        <Route path="/signup" element={<SignUp />} />
         <Route path="/verify-otp" element={<VerifyOTP />} />
         <Route 
           path="/payment" 
