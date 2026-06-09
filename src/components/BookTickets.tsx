@@ -3,6 +3,7 @@ import SearchBar from './SearchBar'
 import Filters from './Filters'
 import Results, { type Train } from './Results'
 import img from "../assets/WhatsApp Image9 2026-04-01 at 7.14.56 AM.jpeg"
+import { BASE_URL } from './Api'
 
 export type FiltersType = { 
   class: string; 
@@ -46,7 +47,7 @@ const BookTickets: React.FC = () => {
       let tripsArray: APITrip[] = [];
 
       try {
-        const response = await fetch(`https://trainbookingapp.fly.dev/api/v1/users/trips/search?${query}`, {
+        const response = await fetch(`${BASE_URL}/users/trips/search?${query}`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,

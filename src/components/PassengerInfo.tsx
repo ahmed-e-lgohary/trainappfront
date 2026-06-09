@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { BASE_URL } from "./Api";
 
 export default function PassengerPage() {
   const [isSelf, setIsSelf] = useState(true);
@@ -108,7 +109,7 @@ export default function PassengerPage() {
         ]
       };
 
-      await fetch("https://trainbookingapp.fly.dev/api/v1/users/payment", {
+      await fetch(`${BASE_URL}/users/payment`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

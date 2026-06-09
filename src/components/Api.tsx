@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://trainapp-production-8bab.up.railway.app/api/v1';
+
 const api = axios.create({
-  baseURL: 'https://trainbookingapp.fly.dev/api/v1',
+  baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },

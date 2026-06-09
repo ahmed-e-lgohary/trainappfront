@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import bgImage from './../assets/packground.jpg'; 
 import enrLogo from '../assets/logo.png'; 
+import { BASE_URL } from './Api'; 
 
 // تعريف نوع الرد المتوقع من السيرفر
 interface LoginResponse {
@@ -43,7 +44,7 @@ const Login: React.FC = () => {
 
     try {
       // الرابط المباشر للسيرفر (EMAIL Login)
-      const response = await axios.post<LoginResponse>('https://trainbookingapp.fly.dev/api/v1/email/login', {
+      const response = await axios.post<LoginResponse>(`${BASE_URL}/email/login`, {
         email: email,
         password: password
       });

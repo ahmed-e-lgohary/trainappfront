@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
 import bgImage from '../assets/packground.jpg';
+import { BASE_URL } from './Api';
 
 interface VerifyResponse {
   success: boolean;
@@ -54,9 +55,10 @@ const VerifyOTP: React.FC = () => {
 
     try {
       // إرسال البيانات للسيرفر (تأكد من الحروف الصغيرة email و otp)
-      const response = await axios.post<VerifyResponse>('https://trainbookingapp.fly.dev/api/v1/email/verifyOTP', {
+      const response = await axios.post<VerifyResponse>(`${BASE_URL}/email/verifyOTP`, {
         email: email.trim(),
-        otp: otp.trim()
+        otp: otp.trim(),
+        type: 'signup'
       });
 
       if (response.data.success) {

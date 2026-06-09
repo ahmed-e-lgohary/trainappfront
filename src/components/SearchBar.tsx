@@ -41,6 +41,24 @@ const SearchBar = ({ onSearch }: Props) => {
   const [toName, setToName] = useState<string>("");
   const [date, setDate] = useState<string>("");
 
+  // حساب الحد الأدنى والأقصى للتاريخ (18 يوم كحد أقصى)
+  const getMinMaxDates = () => {
+    const today = new Date();
+    const formatDate = (d: Date) => {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+    const minDate = formatDate(today);
+    const max = new Date();
+    max.setDate(today.getDate() + 18);
+    const maxDate = formatDate(max);
+    return { minDate, maxDate };
+  };
+
+  const { minDate, maxDate } = getMinMaxDates();
+
   const handleSearch = () => {
     if (!fromName || !toName || !date) {
       alert("Please fill in all fields");
@@ -88,6 +106,8 @@ const SearchBar = ({ onSearch }: Props) => {
       <input
         type="date"
         value={date}
+        min={minDate}
+        max={maxDate}
         onChange={(e) => setDate(e.target.value)}
         className="p-3 rounded-lg bg-white px-8 outline-none w-full md:w-auto text-gray-800"
       />

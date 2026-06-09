@@ -3,6 +3,7 @@ import axios from 'axios'
 import bgimg from '../assets/WhatsApp Image 2026-04-03 at 7.41.56 PM.jpeg'
 import Card from "./Card"; 
 import Work from './Work';
+import { BASE_URL } from './Api';
 import img1 from "../assets/8-removebg-preview.png"; 
 import img2 from "../assets/6-removebg-preview.png";
 import img3 from "../assets/2.jpeg"; 
@@ -21,10 +22,12 @@ const Home = () => {
 
     // تأثير مراقبة خاص بصفحة الهوم ومحكوم بكلاس الهوم والسيتنج بس
     useEffect(() => {
+        const savedTheme = localStorage.getItem("theme");
         const savedDarkMode = localStorage.getItem("darkMode");
+        const isDark = savedTheme === "dark" || (savedTheme === null && savedDarkMode === "true");
         let styleTag = document.getElementById("local-dark-text");
 
-        if (savedDarkMode === "true") {
+        if (isDark) {
             if (!styleTag) {
                 styleTag = document.createElement("style");
                 styleTag.id = "local-dark-text";
@@ -46,7 +49,7 @@ const Home = () => {
         const fetchStats = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const url = 'https://trainbookingapp.fly.dev/api/v1/users/trips/search';
+                const url = `${BASE_URL}/users/trips/search`;
                 
                 const response = await axios.get(url, {
                     headers: { 

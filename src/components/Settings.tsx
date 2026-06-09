@@ -5,6 +5,8 @@ const Settings: React.FC = () => {
   const navigate = useNavigate();
 
   const [enabled, setEnabled] = useState<boolean>(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) return savedTheme === "dark";
     const saved = localStorage.getItem("darkMode");
     return saved === "true";
   });
@@ -45,7 +47,9 @@ const Settings: React.FC = () => {
 
     if (enabled) {
       document.documentElement.classList.add("dark");
+      document.body.className = "dark";
       localStorage.setItem("darkMode", "true");
+      localStorage.setItem("theme", "dark");
 
       // الستايل هنا محكوم بـ .home-page و .settings-page بس ومبيأثرش على باقي الموقع
       if (!styleTag) {
@@ -60,7 +64,9 @@ const Settings: React.FC = () => {
       }
     } else {
       document.documentElement.classList.remove("dark");
+      document.body.className = "light";
       localStorage.setItem("darkMode", "false");
+      localStorage.setItem("theme", "light");
       
       if (styleTag) {
         styleTag.remove();

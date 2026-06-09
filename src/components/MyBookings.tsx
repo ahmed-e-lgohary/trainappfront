@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import { BASE_URL } from './Api';
 
 
 interface SeatInfo {
@@ -72,7 +73,7 @@ const MyBookings = ({ theme, onBack }: MyBookingsProps) => {
     
 
     try {
-      const response = await fetch("https://trainbookingapp.fly.dev/api/v1/users/bookings", {
+      const response = await fetch(`${BASE_URL}/users/bookings`, {
         method: "GET",
         headers: { 
           "Authorization": `Bearer ${token}`, 

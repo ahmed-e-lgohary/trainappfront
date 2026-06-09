@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Seat from "./Seats"; 
+import { BASE_URL } from "./Api";
 
 interface APISeat {
   seatId: string;
@@ -28,7 +29,7 @@ export default function Chair(): React.ReactElement {
   useEffect(() => {
     const fetchSeats = async () => {
       try {
-        const response = await fetch(`https://trainbookingapp.fly.dev/api/v1/users/trips/${idToUse}/seats`, {
+        const response = await fetch(`${BASE_URL}/users/trips/${idToUse}/seats`, {
           headers: { 
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -37,7 +38,11 @@ export default function Chair(): React.ReactElement {
         const resData = await response.json();
         
         if (resData.success && resData.data?.seats && resData.data.seats.length > 0) {
-          setSeats(resData.data.seats);
+          const formatted = resData.data.seats.map((s: any) => ({
+            ...s,
+            seatId: s._id || s.seatId
+          }));
+          setSeats(formatted);
         } else {
           // تفعيل الـ Fallback بالمقاعد الـ 20 الحقيقية التي أرسلتها من الـ Shell
           const backupIds = [
@@ -91,7 +96,7 @@ export default function Chair(): React.ReactElement {
     // ربط خطوة الحجز بعملية الـ hold في السيرفر بناءً على مسار الـ API المرفق
     try {
       for (const seatId of selectedFullIds) {
-        await fetch(`https://trainbookingapp.fly.dev/api/v1/users/seats/${seatId}/hold`, {
+        await fetch(`${BASE_URL}/users/seats/${seatId}/hold`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,

@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import axios from 'axios'; 
 import bgImage from '../assets/packground.jpg'; 
 import { useNavigate } from 'react-router-dom';
+import { BASE_URL } from './Api';
 
 interface SignupResponse {
   success: boolean;
@@ -55,7 +56,7 @@ const SignUp: React.FC = () => {
     };
 
     try {
-      const response = await axios.post<SignupResponse>('https://trainbookingapp.fly.dev/api/v1/email/signup', userData);
+      const response = await axios.post<SignupResponse>(`${BASE_URL}/email/signup`, userData);
 
       if (response.data.success) {
         // السطر ده هو اللي بيبدأ "تجربة الكود" وبياخدك لصفحة الـ OTP
