@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from "react-i18next";
 import { FaCreditCard, FaWallet } from "react-icons/fa";
 
@@ -14,8 +13,6 @@ const Payment: React.FC<PaymentProps> = ({ toggleLang, toggleTheme, theme, payme
   const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [iframeUrl, setIframeUrl] = useState("");
-  const navigate = useNavigate();
 
   const PAYMOB_API_KEY = "ZXlKaGJHY2lPaUpJVXpVeE1pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SmpiR0Z6Y3lJNklrMWxjbU5vWVc1MElpd2ljSEp2Wm1sc1pWOXdheUk2TVRFME56VXdPU3dpYm1GdFpTSTZJbWx1YVhScFlXd2lmUS5xNkxTTWpvd0hMZWw0RHgxMHlERWxqcEltTjZzeTBvdFJWNUlydUJMVzFZMlBqU0V6OWZiNlFFRmNYZE11b0k3MnVBT0NLOG1jeXVJTkFpY2VNVVpsdw==";
   const CARD_ID = 5598973; 
@@ -72,8 +69,7 @@ const Payment: React.FC<PaymentProps> = ({ toggleLang, toggleTheme, theme, payme
       const keyData = await keyRes.json();
 
       if (integrationId === CARD_ID) {
-        window.open(`https://accept.paymob.com/api/acceptance/iframes/${IFRAME_ID}?payment_token=${keyData.token}`, "_blank");
-        setIframeUrl("card");
+        window.location.href = `https://accept.paymob.com/api/acceptance/iframes/${IFRAME_ID}?payment_token=${keyData.token}`;
       } else {
         const walletRes = await fetch("https://accept.paymob.com/api/acceptance/payments/pay", {
           method: "POST",
@@ -86,8 +82,7 @@ const Payment: React.FC<PaymentProps> = ({ toggleLang, toggleTheme, theme, payme
         const walletData = await walletRes.json();
         
         if (walletData.iframe_redirection_url) {
-          window.open(walletData.iframe_redirection_url, "_blank");
-          setIframeUrl("wallet");
+          window.location.href = walletData.iframe_redirection_url;
         } else {
           alert("An error occurred while extracting the wallet link");
         }
@@ -113,74 +108,48 @@ const Payment: React.FC<PaymentProps> = ({ toggleLang, toggleTheme, theme, payme
             <i className={theme === "light" ? "fa-solid fa-moon" : "fa-solid fa-sun"}></i>
           </button>
 
-          {iframeUrl ? (
-            <div className="flex flex-col items-center animate-fade-in">
-              <div className="w-full flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold dark:text-white text-[#b30606]">
-                  {iframeUrl === "wallet" ? "تم فتح صفحة الدفع في نافذة جديدة" : "أكمل عملية الدفع بالأسفل"}
-                </h3>
-                <button 
-                  onClick={() => navigate('/success')}
-                  className="px-6 py-2 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 hover:scale-105 transition-all"
-                >
-                  تم الدفع بنجاح ✅
-                </button>
+          <div className="text-center mb-10">
+            <span className="text-4xl font-bold dark:text-white">{paymentAmount}</span>
+            <span className="text-lg dark:text-white ml-2">{t("egp")}</span>
+            <p className="dark:text-white font-bold mt-8 text-2xl">
+              {loading ? "جاري التحميل..." : t("choose")}
+            </p>
+          </div>
+
+          <div className="space-y-5">
+            {/* زرار الكارت */}
+            <button disabled={loading} onClick={() => handlePayment(CARD_ID)} className="w-full block group text-left disabled:opacity-50">
+              <div className="flex justify-between items-center p-4 md:px-6 rounded-xl shadow-[inset_0_0_5px_1px_#e56510] group-hover:scale-[1.01] transition-all">
+                <p className="text-black dark:text-white text-xl font-bold">{t("Bcard")}</p>
+                <FaCreditCard className='text-[25px] text-[#e56510]'/>
               </div>
-              
-              {iframeUrl !== "wallet" && iframeUrl !== "card" && (
-                <iframe 
-                  src={iframeUrl} 
-                  className="w-full h-[600px] border-2 border-[#e56510] rounded-xl shadow-lg"
-                  title="Payment Frame"
-                />
-              )}
+            </button>
+
+            {/* زرار المحفظة */}
+            <button disabled={loading} onClick={() => handlePayment(WALLET_ID)} className="w-full block group text-left disabled:opacity-50">
+              <div className="flex justify-between items-center p-4 md:px-6 rounded-xl shadow-[inset_0_0_5px_1px_#e56510] group-hover:scale-[1.01] transition-all">
+                <p className="text-black dark:text-white text-xl font-bold">{t("Mwallet")}</p>
+                <FaWallet className='text-[25px] text-[#e56510]'/>
+              </div>
+            </button>
+
+            {/* خانة رقم المحفظة (الآن تحت زرار المحفظة مباشرة) */}
+            <div className="mt-4 max-w-xs mx-auto animate-fade-in">
+              <input 
+                type="text" 
+                placeholder="Please enter your wallet number(01xxxxxxxxx)"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                className="w-full p-3 rounded-xl border border-[#e56510] bg-transparent dark:text-white text-center outline-none focus:ring-2 ring-[#e56510] placeholder:text-gray-500 text-sm font-bold"
+              />
             </div>
-          ) : (
-            <>
-              <div className="text-center mb-10">
-                <span className="text-4xl font-bold dark:text-white">{paymentAmount}</span>
-                <span className="text-lg dark:text-white ml-2">{t("egp")}</span>
-                <p className="dark:text-white font-bold mt-8 text-2xl">
-                  {loading ? "جاري التحميل..." : t("choose")}
-                </p>
-              </div>
+          </div>
 
-              <div className="space-y-5">
-                {/* زرار الكارت */}
-                <button disabled={loading} onClick={() => handlePayment(CARD_ID)} className="w-full block group text-left disabled:opacity-50">
-                  <div className="flex justify-between items-center p-4 md:px-6 rounded-xl shadow-[inset_0_0_5px_1px_#e56510] group-hover:scale-[1.01] transition-all">
-                    <p className="text-black dark:text-white text-xl font-bold">{t("Bcard")}</p>
-                    <FaCreditCard className='text-[25px] text-[#e56510]'/>
-                  </div>
-                </button>
-
-                {/* زرار المحفظة */}
-                <button disabled={loading} onClick={() => handlePayment(WALLET_ID)} className="w-full block group text-left disabled:opacity-50">
-                  <div className="flex justify-between items-center p-4 md:px-6 rounded-xl shadow-[inset_0_0_5px_1px_#e56510] group-hover:scale-[1.01] transition-all">
-                    <p className="text-black dark:text-white text-xl font-bold">{t("Mwallet")}</p>
-                    <FaWallet className='text-[25px] text-[#e56510]'/>
-                  </div>
-                </button>
-
-                {/* خانة رقم المحفظة */}
-                <div className="mt-4 max-w-xs mx-auto animate-fade-in">
-                  <input 
-                    type="text" 
-                    placeholder="Please enter your wallet number(01xxxxxxxxx)"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="w-full p-3 rounded-xl border border-[#e56510] bg-transparent dark:text-white text-center outline-none focus:ring-2 ring-[#e56510] placeholder:text-gray-500 text-sm font-bold"
-                  />
-                </div>
-              </div>
-
-              <div className="mt-8 text-center md:text-left">
-                <button onClick={() => window.history.back()} className="inline-flex items-center gap-2 px-5 py-2 bg-[#570707] text-white rounded-md border-2 border-[#ff5b2a7d] shadow-[inset_0_0_9px_6px_#812104] font-bold hover:brightness-125 transition-all">
-                  {t("back")}
-                </button>
-              </div>
-            </>
-          )}
+          <div className="mt-8 text-center md:text-left">
+            <button onClick={() => window.history.back()} className="inline-flex items-center gap-2 px-5 py-2 bg-[#570707] text-white rounded-md border-2 border-[#ff5b2a7d] shadow-[inset_0_0_9px_6px_#812104] font-bold hover:brightness-125 transition-all">
+              {t("back")}
+            </button>
+          </div>
         </div>
       </div>
     </div>
