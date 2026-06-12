@@ -6,8 +6,8 @@ import img from "../assets/WhatsApp Image9 2026-04-01 at 7.14.56 AM.jpeg"
 import { BASE_URL } from './Api'
 
 export type FiltersType = { 
-  class: string; 
-  time: string; 
+  classes: string[]; 
+  times: string[]; 
 };
 
 interface APITrip {
@@ -36,7 +36,7 @@ const BookTickets: React.FC = () => {
   const [results, setResults] = useState<Train[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState<FiltersType>({ class: '', time: '' });
+  const [filters, setFilters] = useState<FiltersType>({ classes: [], times: [] });
 
   const handleSearch = async (searchParams: { from: string; to: string; date: string }) => {
     setLoading(true);
@@ -151,8 +151,28 @@ const BookTickets: React.FC = () => {
 
   // الحل السحري هنا: تحويل الطرفين لـ toLowerCase() وتجنب أي مشاكل في المسافات أو حالة الأحرف
   const filteredResults = results.filter((train) => {
-    if (!filters.class || filters.class === "") return true; 
-    return train.class.trim().toLowerCase() === filters.class.trim().toLowerCase();
+    // Check classes
+    const classMatch = filters.classes.length === 0 || 
+      filters.classes.some(c => c.trim().toLowerCase() === train.class.trim().toLowerCase());
+    
+    // Check times
+    let timeMatch = filters.times.length === 0;
+    if (filters.times.length > 0 && train.fromTime) {
+      // Assuming fromTime is something like "08:30 AM" or "14:00"
+      // We need to parse the hour. Let's do a simple parse:
+      const timeStr = train.fromTime.toLowerCase();
+      let hour = parseInt(timeStr.split(":")[0], 10);
+      if (timeStr.includes("pm") && hour !== 12) hour += 12;
+      if (timeStr.includes("am") && hour === 12) hour = 0;
+
+      let timeOfDay = "Night";
+      if (hour >= 5 && hour < 12) timeOfDay = "Morning";
+      else if (hour >= 12 && hour < 18) timeOfDay = "Afternoon";
+
+      timeMatch = filters.times.includes(timeOfDay);
+    }
+
+    return classMatch && timeMatch;
   });
 
   return (
