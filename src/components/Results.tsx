@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import type { FiltersType } from './BookTickets';
 
 export type Train = {
   id: string;
@@ -15,7 +16,7 @@ export type Train = {
 
 interface ResultsProps {
   data: Train[];
-  currentFilters?: { class: string }; 
+  currentFilters?: FiltersType; 
 }
 
 const Results: React.FC<ResultsProps> = ({ data }) => {
