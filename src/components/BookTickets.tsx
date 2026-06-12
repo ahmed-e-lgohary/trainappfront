@@ -11,14 +11,25 @@ export type FiltersType = {
 };
 
 interface APITrip {
-  _id: string;
-  departureDate: string; 
-  arrivalDate: string;
-  price: number;
+  _id?: string;
+  tripId?: string;
+  departureDate?: string; 
+  arrivalDate?: string;
+  departureTime?: string;
+  arrivalTime?: string;
+  duration?: string;
+  price?: number;
   trainName?: string;
+  trainType?: string;
   trainNumber?: number;
   fromStationName?: string; 
   toStationName?: string;
+  from?: string;
+  to?: string;
+  display?: {
+    fromStationName?: string;
+    toStationName?: string;
+  };
 }
 
 const BookTickets: React.FC = () => {
@@ -104,14 +115,21 @@ const BookTickets: React.FC = () => {
           return "14:00";
         };
 
+        const trainNameStr = trip.trainType && trip.trainNumber 
+            ? `${trip.trainType} - ${trip.trainNumber}` 
+            : (trip.trainName || "Express Train");
+
+        const fromStr = trip.from || trip.display?.fromStationName || trip.fromStationName || localStorage.getItem("departureCity") || "Cairo Central Station";
+        const toStr = trip.to || trip.display?.toStationName || trip.toStationName || localStorage.getItem("destinationCity") || "Aswan Station";
+
         const baseTrain = {
-          id: trip._id,
-          name: trip.trainName || "Express Train", 
-          from: trip.fromStationName || localStorage.getItem("departureCity") || "Cairo Central Station", 
-          to: trip.toStationName || localStorage.getItem("destinationCity") || "Aswan Station", 
-          fromTime: formatTime(depDate),
-          toTime: formatTime(arrDate),
-          duration: "12h",
+          id: trip.tripId || trip._id || "",
+          name: trainNameStr, 
+          from: fromStr, 
+          to: toStr, 
+          fromTime: trip.departureTime || formatTime(depDate),
+          toTime: trip.arrivalTime || formatTime(arrDate),
+          duration: trip.duration || "12h",
         };
 
         // توليد الـ 3 درجات بالأسماء المظبوطة بالملي عشان الفلتر يلقطها

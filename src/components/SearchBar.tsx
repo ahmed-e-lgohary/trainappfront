@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaArrowRight } from "react-icons/fa";
+import api from "./Api";
 
 export type SearchData = {
   from: string;
@@ -12,34 +13,54 @@ type Props = {
   onSearch: (data: SearchData) => void;
 };
 
-// تم تحديد نوع المصفوفة هنا صراحة لإنهاء مشكلة التايب سكريبت (any type index)
-const serverStations: { name: string; id: string; }[] = [
-  { name: "Cairo Central Station", id: "6a07f72d5175f779df23d173" },
-  { name: "Aswan Station", id: "6a07f72d5175f779df23d18b" },
-  { name: "Sohag", id: "69e9bc1f9781f85ddaf3d26d" },
-  { name: "Alexandria Main Station", id: "6a07f72d5175f779df23d178" },
-  { name: "Giza Station", id: "6a07f72d5175f779df23d174" },
-  { name: "Deir Mawas", id: "69e9bb519781f85ddaf3d230" },
-  { name: "Mallawi", id: "69e9bb519781f85ddaf3d22f" },
-  { name: "Tahta", id: "69e9bb519781f85ddaf3d235" },
-  { name: "Assiut", id: "69e9bb519781f85ddaf3d231" },
-  { name: "Abnoub", id: "69e9bb519781f85ddaf3d232" },
-  { name: "Manfalut", id: "69e9bb519781f85ddaf3d233" },
-  { name: "Giza", id: "69e9bbf49781f85ddaf3d24a" },
-  { name: "Bashtil", id: "69e9bbf49781f85ddaf3d249" },
-  { name: "Ismailia", id: "69e9bbf49781f85ddaf3d260" },
-  { name: "Port Said", id: "69e9bbf49781f85ddaf3d261" },
-  { name: "Luxor", id: "69e9bc1f9781f85ddaf3d274" },
-  { name: "Edfu", id: "69e9bc1f9781f85ddaf3d276" },
-  { name: "Banha Station", id: "6a07f72d5175f779df23d175" },
-  { name: "Tanta Station", id: "6a07f72d5175f779df23d176" },
-  { name: "Damanhur Station", id: "6a07f72d5175f779df23d177" }
-];
+type Station = {
+  _id: string;
+  name: string;
+  displayName?: string;
+};
 
 const SearchBar = ({ onSearch }: Props) => {
+  const [fromStations, setFromStations] = useState<Station[]>([]);
+  const [toStations, setToStations] = useState<Station[]>([]);
+
   const [fromName, setFromName] = useState<string>("");
   const [toName, setToName] = useState<string>("");
   const [date, setDate] = useState<string>("");
+
+  // Fetch 'From' stations on component mount
+  useEffect(() => {
+    api.get("/users/stations")
+      .then(res => {
+        if (res.data.success) {
+          setFromStations(res.data.data);
+        }
+      })
+      .catch(err => console.error("Error fetching stations:", err));
+  }, []);
+
+  // Fetch valid 'To' destinations when 'fromName' changes
+  useEffect(() => {
+    if (!fromName) {
+      setToStations([]);
+      return;
+    }
+
+    const selectedFrom = fromStations.find(
+      s => (s.displayName || s.name) === fromName.trim()
+    );
+
+    if (selectedFrom) {
+      api.get(`/users/destinations?from=${selectedFrom._id}`)
+        .then(res => {
+          if (res.data.success) {
+            setToStations(res.data.data);
+          }
+        })
+        .catch(err => console.error("Error fetching destinations:", err));
+    } else {
+      setToStations([]);
+    }
+  }, [fromName, fromStations]);
 
   // حساب الحد الأدنى والأقصى للتاريخ (18 يوم كحد أقصى)
   const getMinMaxDates = () => {
@@ -64,8 +85,9 @@ const SearchBar = ({ onSearch }: Props) => {
       alert("Please fill in all fields");
       return;
     }
-    const fromStation = serverStations.find(s => s.name === fromName.trim());
-    const toStation = serverStations.find(s => s.name === toName.trim());
+
+    const fromStation = fromStations.find(s => (s.displayName || s.name) === fromName.trim());
+    const toStation = toStations.find(s => (s.displayName || s.name) === toName.trim());
 
     if (!fromStation || !toStation) {
       alert("Please select a valid station from the list");
@@ -77,8 +99,8 @@ const SearchBar = ({ onSearch }: Props) => {
     localStorage.setItem("travelDate", date);
 
     onSearch({ 
-      from: fromStation.id, 
-      to: toStation.id, 
+      from: fromStation._id, 
+      to: toStation._id, 
       date, 
       classType: "First Class" 
     });
@@ -87,9 +109,13 @@ const SearchBar = ({ onSearch }: Props) => {
   return (
     <div className="bg-red-900 p-5 rounded-2xl flex flex-col md:flex-row gap-4 items-center justify-center shadow-xl">
       <input
-        list="stations"
+        list="from-stations"
         value={fromName}
-        onChange={(e) => setFromName(e.target.value)}
+        onChange={(e) => {
+          setFromName(e.target.value);
+          // Reset 'to' when 'from' changes to prevent invalid state
+          setToName(""); 
+        }}
         placeholder="From"
         className="p-3 rounded-lg bg-white outline-none w-full md:w-auto text-gray-800"
       />
@@ -97,11 +123,12 @@ const SearchBar = ({ onSearch }: Props) => {
         <FaArrowRight/>
       </div>
       <input
-        list="stations"
+        list="to-stations"
         value={toName}
         onChange={(e) => setToName(e.target.value)}
         placeholder="To"
         className="p-3 rounded-lg bg-white outline-none w-full md:w-auto text-gray-800"
+        disabled={!fromName || toStations.length === 0}
       />
       <input
         type="date"
@@ -113,17 +140,25 @@ const SearchBar = ({ onSearch }: Props) => {
       />
       <button
         onClick={handleSearch}
-        className="bg-red-600 text-white px-10 rounded-lg py-2 text-[20px] font-semibold hover:bg-red-700 transition-all"
+        className="bg-red-600 text-white px-10 rounded-lg py-2 text-[20px] font-semibold hover:bg-red-700 transition-all disabled:opacity-50"
+        disabled={!fromName || !toName || !date}
       >
         Search
       </button>
-      <datalist id="stations">
-        {serverStations.map((station, i) => (
-          <option key={i} value={station.name} />
+
+      <datalist id="from-stations">
+        {fromStations.map((station, i) => (
+          <option key={i} value={station.displayName || station.name} />
+        ))}
+      </datalist>
+      
+      <datalist id="to-stations">
+        {toStations.map((station, i) => (
+          <option key={i} value={station.displayName || station.name} />
         ))}
       </datalist>
     </div>
   );
 };
 
-export default SearchBar;
+export default SearchBar;

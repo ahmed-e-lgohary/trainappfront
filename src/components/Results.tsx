@@ -45,7 +45,7 @@ const Results: React.FC<ResultsProps> = ({ data }) => {
   }
 
   return (
-    <div className="space-y-6 font-['Cairo']">
+    <div className="space-y-6 font-['Cairo'] max-h-[500px] overflow-y-auto pr-4 custom-scrollbar">
       {data.map((train, index) => (
         <div key={`${train.id}-${train.class}-${index}`} className="bg-[#1e1e1e] text-white p-6 rounded-3xl shadow-xl flex flex-col md:flex-row justify-between items-center gap-6 border border-gray-800 transition-all hover:border-gray-700">
           
