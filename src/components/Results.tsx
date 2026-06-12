@@ -39,12 +39,8 @@ const Results: React.FC<ResultsProps> = ({ data }) => {
 
   if (!data || data.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 bg-red-50 dark:bg-red-900/10 rounded-3xl shadow-sm border border-red-100 dark:border-red-900/30 mt-5 font-sans transition-all">
-        <svg className="w-16 h-16 text-red-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-        </svg>
-        <p className="text-red-800 dark:text-red-400 font-bold text-xl">No trains found</p>
-        <p className="text-md text-gray-500 mt-2">Try adjusting your filters to see more results.</p>
+      <div className="text-center p-10 bg-[#252525] rounded-2xl shadow-lg mt-5 font-['Cairo']">
+        <p className="text-gray-400 font-bold text-lg">No trains found for this filter selection.</p>
       </div>
     );
   }

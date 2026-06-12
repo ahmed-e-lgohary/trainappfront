@@ -37,10 +37,8 @@ const BookTickets: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<FiltersType>({ classes: [], times: [] });
-  const [hasSearched, setHasSearched] = useState<boolean>(false);
 
   const handleSearch = async (searchParams: { from: string; to: string; date: string }) => {
-    setHasSearched(true);
     setLoading(true);
     setError(null);
 
@@ -205,16 +203,7 @@ const BookTickets: React.FC = () => {
                 {error}
               </div>
             )}
-            {!hasSearched && !loading && !error && (
-              <div className="flex flex-col items-center justify-center p-12 bg-gray-50 dark:bg-gray-800/30 rounded-3xl border border-gray-100 dark:border-gray-700 mt-5 font-sans transition-all">
-                <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <p className="text-gray-500 dark:text-gray-400 font-bold text-xl">Search for trains</p>
-                <p className="text-md text-gray-400 mt-2">Enter your destination and date to find available trips.</p>
-              </div>
-            )}
-            {hasSearched && !loading && !error && <Results data={filteredResults} currentFilters={filters} />}
+            {!loading && !error && <Results data={filteredResults} currentFilters={filters} />}
           </div>
         </div>
       </div>
