@@ -72,7 +72,8 @@ const Payment: React.FC<PaymentProps> = ({ toggleLang, toggleTheme, theme, payme
       const keyData = await keyRes.json();
 
       if (integrationId === CARD_ID) {
-        setIframeUrl(`https://accept.paymob.com/api/acceptance/iframes/${IFRAME_ID}?payment_token=${keyData.token}`);
+        window.open(`https://accept.paymob.com/api/acceptance/iframes/${IFRAME_ID}?payment_token=${keyData.token}`, "_blank");
+        setIframeUrl("card");
       } else {
         const walletRes = await fetch("https://accept.paymob.com/api/acceptance/payments/pay", {
           method: "POST",
@@ -126,7 +127,7 @@ const Payment: React.FC<PaymentProps> = ({ toggleLang, toggleTheme, theme, payme
                 </button>
               </div>
               
-              {iframeUrl !== "wallet" && (
+              {iframeUrl !== "wallet" && iframeUrl !== "card" && (
                 <iframe 
                   src={iframeUrl} 
                   className="w-full h-[600px] border-2 border-[#e56510] rounded-xl shadow-lg"
