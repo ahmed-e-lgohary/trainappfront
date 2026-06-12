@@ -124,24 +124,35 @@ export default function Chair(): React.ReactElement {
     const rows: React.ReactElement[] = [];
     const groupedSeats: { [key: number]: APISeat[] } = {};
     
-    seats.forEach(seat => {
-      const r = seat.row || 1;
+    const trainClass = localStorage.getItem("selectedClass") || "";
+    const isVIP = trainClass.toLowerCase().includes("vip") || trainClass.toLowerCase().includes("first");
+    const seatsPerRow = isVIP ? 3 : 4;
+
+    // Sort all seats by number first to ensure correct ordering
+    const sortedSeats = [...seats].sort((a, b) => (a.number || 0) - (b.number || 0));
+
+    sortedSeats.forEach((seat, index) => {
+      // Calculate row based on index if the backend doesn't provide it
+      const r = seat.row || Math.ceil((index + 1) / seatsPerRow);
       if (!groupedSeats[r]) groupedSeats[r] = [];
       groupedSeats[r].push(seat);
     });
 
     Object.keys(groupedSeats).sort((a, b) => Number(a) - Number(b)).forEach((rowNum) => {
       const rowSeats = groupedSeats[Number(rowNum)].sort((a, b) => a.number - b.number);
+      
       rows.push(
-        <div key={rowNum} className="flex items-center justify-between mb-3 w-full max-w-[350px] mx-auto px-2">
+        <div key={rowNum} className={`flex items-center justify-between mb-3 w-full ${isVIP ? 'max-w-[280px]' : 'max-w-[350px]'} mx-auto px-2`}>
           <div className="flex gap-2">
-            {rowSeats.slice(0, 2).map(s => (
+            {rowSeats.slice(0, isVIP ? 2 : 2).map(s => (
               <Seat key={s.seatId} number={s.number} status={s.status === "booked" ? "booked" : selected.includes(s.number) ? "selected" : "available"} onClick={() => toggleSeat(s.number)} />
             ))}
           </div>
+          
           <div className="text-[11px] text-gray-400 font-bold uppercase tracking-wider mx-4">Aisle</div>
+          
           <div className="flex gap-2">
-            {rowSeats.slice(2, 4).map(s => (
+            {rowSeats.slice(isVIP ? 2 : 2, isVIP ? 3 : 4).map(s => (
               <Seat key={s.seatId} number={s.number} status={s.status === "booked" ? "booked" : selected.includes(s.number) ? "selected" : "available"} onClick={() => toggleSeat(s.number)} />
             ))}
           </div>
